@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const RegisterUserDTO = z
+export const registerUserDTO = z
   .object({
     username: z.string().min(3, "User name must have at least 3 characters"),
     password: z.string().min(6, "Pasword must have at least 6 characters"),
@@ -14,7 +14,7 @@ export const RegisterUserDTO = z
   })
   .strict();
 
-export const UserResponseDTO = (user) => {
+export const userResponseDTO = (user) => {
   return {
     id: user.id,
     username: user.username,

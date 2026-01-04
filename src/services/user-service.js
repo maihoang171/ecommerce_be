@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
 export const registerUserService = async (userData) => {
   const { username, password, firstName, lastName, phoneNumber } = userData;
-  console.log(userData);
   const existingUser = await prisma.user.findUnique({
     where: { username },
   });
