@@ -1,0 +1,26 @@
+import z from "zod";
+
+export const RegisterUserDTO = z
+  .object({
+    username: z.string().min(3, "User name must have at least 3 characters"),
+    password: z.string().min(6, "Pasword must have at least 6 characters"),
+    firstName: z.string().min(1, "First name must not be empty"),
+    lastName: z.string().min(1, "Last name must not be empty"),
+    phoneNumber: z
+      .string()
+      .min(10, "Phone number must have at least 10 numbers")
+      .optional()
+      .or(z.literal("")),
+  })
+  .strict();
+
+export const UserResponseDTO = (user) => {
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: `${user.firstName} ${user.lastName}`,
+    role: user.role,
+    phone: user.phoneNumber || "N/A",
+    createdAt: user.createdAt,
+  };
+};
