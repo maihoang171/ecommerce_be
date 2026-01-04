@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  customer
+  admin
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  lastName    String
+  firstName   String
+  role        Role     @default(customer)
+  phoneNumber String? 
+
+  userAddresses UserAddress[]
+  inventoryLogs InventoryLog[]
+  orders        Order[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model UserAddress {
+  id             Int     @id @default(autoincrement())
+  userId         Int
+  user           User    @relation(fields: [userId], references: [id])
+  
+  recipientName  String
+  recipientPhone String
+  streetAddress  String
+  city           String
+  district       String
+  ward           String
+  isDefault      Boolean @default(false)
+
+  @@map("user_addresses")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  imageUrl  String?  @db.Text 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  imageUrl      String
+
+  price         Decimal  @db.Decimal(10, 2) 
+  discountPrice Decimal? @db.Decimal(10, 2)
+  description   String?  @db.Text          
+  stockQuantity Int      @default(0)
+
+  categoryId    Int
+  category      Category @relation(fields: [categoryId], references: [id])
+
+  specs         Json?
+  isActive      Boolean  @default(true)
+  
+  orderItems    OrderItem[]
+  inventoryLogs InventoryLog[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("products")
+}
+
+enum OrderStatus {
+  pending
+  shipping
+  delivered
+  cancelled
+}
+
+enum PaymentMethod { 
+  COD
+  Momo
+}
+
+model Order {
+  id               String         @id @default(uuid())
+
+  userId           Int
+  user             User        @relation(fields: [userId], references: [id])
+
+  totalPrice       Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(pending) 
+  paymentMethod    PaymentMethod @default(COD)      
+  note             String?
+  
+  recipientName    String
+  recipientPhone   String
+  shippingStreet   String
+  shippingCity     String
+  shippingDistrict String
+  shippingWard     String
+
+  items            OrderItem[]
+  payment          Payment?    
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+enum PaymentStatus { 
+  pending
+  completed
+  failed
+  refund
+}
+
+model Payment {
+  id            Int        @id @default(autoincrement())
+
+  orderId       String        @unique 
+  order         Order         @relation(fields: [orderId], references: [id])
+
+  method        PaymentMethod 
+  transactionId String?       
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(pending)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_items")
+}
+
+enum InventoryType { 
+  import
+  sale
+  return
+  damage
+}
+
+model InventoryLog {
+  id             Int           @id @default(autoincrement())
+  
+  productId      Int
+  product        Product       @relation(fields: [productId], references: [id])
+
+  changeAmount   Int
+  remainingStock Int
+
+  userId         Int
+  createdBy      User          @relation(fields: [userId], references: [id])
+  
+  type           InventoryType
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("inventory_logs")
+}
