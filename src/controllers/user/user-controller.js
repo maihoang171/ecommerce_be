@@ -26,7 +26,7 @@ export const loginUserController = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       data: userResponseDTO(result.user),
-      token: result.accessToken,
+      accessToken: result.accessToken,
     });
   } catch (error) {
     next(error);

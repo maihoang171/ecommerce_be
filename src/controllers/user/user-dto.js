@@ -2,12 +2,16 @@ import z from "zod";
 
 export const authBase = z.object({
   username: z.string().min(3, "User name must have at least 3 characters"),
-  password: z.string().min(6, "Password must have at least 6 characters"),
+  password: z
+    .string()
+    .min(6, "Password must have at least 6 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
-export const registerUserDTO = z
-  .object({
-    ...authBase,
+export const registerUserDTO = authBase
+  .extend({
     firstName: z.string().min(1, "First name must not be empty"),
     lastName: z.string().min(1, "Last name must not be empty"),
     phoneNumber: z
