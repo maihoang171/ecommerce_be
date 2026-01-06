@@ -1,9 +1,13 @@
 import z from "zod";
 
+export const authBase = z.object({
+  username: z.string().min(3, "User name must have at least 3 characters"),
+  password: z.string().min(6, "Password must have at least 6 characters"),
+});
+
 export const registerUserDTO = z
   .object({
-    username: z.string().min(3, "User name must have at least 3 characters"),
-    password: z.string().min(6, "Pasword must have at least 6 characters"),
+    ...authBase,
     firstName: z.string().min(1, "First name must not be empty"),
     lastName: z.string().min(1, "Last name must not be empty"),
     phoneNumber: z
@@ -24,3 +28,5 @@ export const userResponseDTO = (user) => {
     createdAt: user.createdAt,
   };
 };
+
+export const loginDTO = authBase;
