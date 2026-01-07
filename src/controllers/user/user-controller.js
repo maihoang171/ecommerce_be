@@ -46,7 +46,7 @@ export const getMeController = async (req, res) => {
     const user = await getMeService(req.user.id);
 
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
         status: "fail",
         message: "user is no longer exists",
       });
