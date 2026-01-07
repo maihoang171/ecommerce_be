@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
 
-export const registerUserService = async (userData) => {
+export const registerService = async (userData) => {
   const { username, password, firstName, lastName, phoneNumber } = userData;
   const existingUser = await prisma.user.findUnique({
     where: { username },
@@ -43,7 +43,7 @@ export const registerUserService = async (userData) => {
   return newUser;
 };
 
-export const loginUserService = async (userData) => {
+export const loginService = async (userData) => {
   const { username, password } = userData;
 
   const user = await prisma.user.findUnique({
@@ -73,4 +73,12 @@ export const loginUserService = async (userData) => {
     user: user,
     accessToken: token,
   };
+};
+
+export const getMeService = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  return user;
 };
