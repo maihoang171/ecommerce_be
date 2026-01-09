@@ -2,8 +2,14 @@ import {
   loginService,
   registerService,
   getMeService,
+  createAddressService,
 } from "../../services/user-service.js";
-import { userResponseDTO, registerUserDTO, loginDTO } from "./user-dto.js";
+import {
+  userResponseDTO,
+  registerUserDTO,
+  loginDTO,
+  registerAddressDTO,
+} from "./user-dto.js";
 
 export const registerController = async (req, res, next) => {
   try {
@@ -62,15 +68,30 @@ export const getMeController = async (req, res) => {
 };
 
 export const logoutController = async (req, res) => {
-   res.cookie("accessToken", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: 0,
-      path: "/",
-    });
-    
-    res.status(200).json({
+  res.cookie("accessToken", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  });
+
+  res.status(200).json({
+    status: "success",
+  });
+};
+
+export const createAddressController = async (req, res, next) => {
+  try {
+    const validatedData = registerAddressDTO.parse(req.body);
+    const userId = req.user.id;
+    const newAddress = await createAddressService(userId, validatedData);
+
+    res.status(201).json({
       status: "success",
+      data: newAddress,
     });
-}
+  } catch (error) {
+    next(error);
+  }
+};

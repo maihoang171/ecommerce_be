@@ -82,3 +82,47 @@ export const getMeService = async (userId) => {
 
   return user;
 };
+
+export const createAddressService = async (userId, addressData) => {
+  const {
+    recipientName,
+    recipientPhone,
+    streetAddress,
+    city,
+    district,
+    ward,
+    isDefault,
+  } = addressData;
+
+  const addressCount = await prisma.userAddress.count({
+    where: { userId: userId },
+  });
+
+  let finalDefaultStatus = isDefault || false;
+
+  if (addressCount === 0) {
+    finalDefaultStatus = true;
+  }
+
+  if (finalDefaultStatus && addressCount > 0) {
+    await prisma.userAddress.updateMany({
+      where: { id: userId },
+      data: { isDefault: false },
+    });
+  }
+
+  const newAddress = await prisma.userAddress.create({
+    data: {
+      userId: userId,
+      recipientName,
+      recipientPhone,
+      streetAddress,
+      city,
+      district,
+      ward,
+      isDefault: finalDefaultStatus,
+    },
+  });
+
+  return newAddress;
+};
