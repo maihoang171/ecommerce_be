@@ -1,0 +1,234 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -------------User-------------
+enum UserRole {
+  ADMIN
+  USER
+}
+model User {
+  id Int @id @default(autoincrement())
+  userName String
+  password String
+  lastName String
+  firstName String
+  role UserRole @default(USER)
+  phoneNumber String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  addresses UserAddress[]
+  orders Order[]
+  cart Cart?
+}
+
+model UserAddress {
+  id Int @id @default(autoincrement())
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+  userId Int
+  recipientName String
+  recipientPhoneNumber String
+  streetAddress String
+  city String
+  ward String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------Order---------------
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
+}
+model Order {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id])
+  userId Int 
+  totalPrice Decimal
+  status OrderStatus
+  paymentMethod String
+  note String?
+  recipientName String
+  recipientPhoneNumber String
+  shippingAddress String
+  shippingCity String
+  shippingWard String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments Payment[]
+  orderItems OrderItem[]
+  orderTimelines OrderTimeline[]
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String 
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+  productVariantId Int 
+  quantity Int
+  price Decimal @db.Decimal(10,2)
+
+  @@index([orderId, productVariantId])
+}
+
+model OrderTimeline {
+  id Int @id @default(autoincrement())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String 
+  status OrderStatus
+  note String?
+  changedBy Int?
+  createdAt DateTime @default(now())  
+}
+
+// ----------Payment----------------
+enum PaymentMethod {
+  COD
+  MOMO
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id String @id @default(uuid())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String
+  method PaymentMethod
+  transactionId String
+  amount Decimal @db.Decimal(10,2)
+  status PaymentStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// ------Category--------------------
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  imageUrl String
+  products Product[]
+}
+
+
+// -----Product--------------
+model Product{
+  id Int @id @default(autoincrement())
+  name String
+  price Decimal @db.Decimal(10,2)
+  discountPrice Decimal? @db.Decimal(10,2)
+  description String @db.Text
+  category Category @relation(fields:[categoryId], references:[id])
+  categoryId Int
+  isActive Boolean @default(true)
+  discountStartAt DateTime?
+  discountEndAt DateTime?
+  images ProductImage[]
+  variants ProductVariant[]
+
+  @@index([categoryId, isActive, price])
+}
+
+model ProductImage {
+  id Int @id @default(autoincrement())
+  product Product @relation(fields:[productId], references:[id], onDelete: Cascade)
+  productId Int
+  imageUrl String
+  isPrimary Boolean @default(false)
+
+  @@index([productId])
+}
+
+
+enum ProductSize {
+  S
+  M
+  L
+  XL
+  XXL
+}
+
+model ProductVariant {
+  id Int @id @default(autoincrement())
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+  size ProductSize
+  color String
+  stockQuantity Int @default(0)
+  sku String @unique
+  orderItems OrderItem[]
+  inventoryLogs InventoryLog[]
+  cartItems CartItem[]
+
+  @@index([productId])
+}
+
+// ---------Cart-----------------
+model Cart {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @unique
+  items CartItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CartItem { 
+  id Int @id @default(autoincrement())
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  productVariantId Int
+  quantity Int @default(1)
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId Int
+
+  @@unique([cartId, productVariantId])
+  @@index([cartId])
+}
+
+
+// ---------Inventory-----------------
+enum InventoryLogType {
+  IMPORT
+  EXPORT
+  RETURN
+  DAMAGE
+}
+
+model InventoryLog {
+  id Int @id @default(autoincrement())
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  productVariantId Int 
+  changeAmount Int
+  remainingStock Int
+  type InventoryLogType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productVariantId])
+}
+
+
+
