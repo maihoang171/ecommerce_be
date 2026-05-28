@@ -182,6 +182,9 @@ CREATE TABLE "InventoryLog" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_userName_key" ON "User"("userName");
+
+-- CreateIndex
 CREATE INDEX "Order_userId_createdAt_idx" ON "Order"("userId", "createdAt");
 
 -- CreateIndex
