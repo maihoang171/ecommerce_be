@@ -47,6 +47,6 @@ export const generateAndSetTokens = async (
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: sevenDay,
-    path: "/api/vi/auth/refresh-token",
+    path: "/api/v1/auth/refresh-token",
   });
 };
