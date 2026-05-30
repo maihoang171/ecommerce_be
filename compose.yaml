@@ -12,7 +12,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data 
  
-  adminer:
+  adminer: 
     image: adminer
     restart: always
     ports:

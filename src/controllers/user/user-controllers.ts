@@ -15,7 +15,7 @@ export const registerController = async (
     const validatedData = registerUserDTO.parse(req.body);
     const newUser = await registerService({
       ...validatedData,
-      phoneNumber: validatedData.phoneNumber || "",
+      phoneNumber: validatedData.phoneNumber ?? "",
     });
 
     res.status(201).json({
