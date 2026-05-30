@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client";
+import * as PrismaClientPkg from "@prisma/client";
+
+const { PrismaClient } = PrismaClientPkg as any;
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
