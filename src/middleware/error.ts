@@ -4,6 +4,7 @@ import type {
   NextFunction,
 } from "express-serve-static-core";
 import { ZodError } from "zod";
+import {sendError} from "../utils/response-utils"
 
 type ErrorWithStatusCode = Error & { statusCode: number; code?: string };
 
@@ -28,8 +29,5 @@ export const errorHandler = (
   }
   
   console.error(`Error: ${message}`);
-  res.status(statusCode).json({
-    status: "error",
-    message,
-  });
+  sendError(res, statusCode, message)
 };

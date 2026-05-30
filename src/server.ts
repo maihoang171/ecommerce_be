@@ -5,6 +5,10 @@ const PORT = process.env.PORT || 3000;
 
 async function startServer() {
     try{
+        if(!process.env.JWT_SECRET){
+            console.error("JWT_SECRET is not configured");
+            process.exit(1);
+        }
         console.log("Connecting to the database...")
         await prisma.$connect();
         app.listen(PORT, () => {

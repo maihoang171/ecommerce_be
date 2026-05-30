@@ -30,8 +30,17 @@ model User {
   addresses UserAddress[]
   orders Order[]
   cart Cart?
+  refreshTokens refreshToken[]
 }
 
+model refreshToken{
+  id String @id @default(uuid())
+  token String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  createdAt DateTime @default(now())
+  expiredAt DateTime 
+}
 model UserAddress {
   id Int @id @default(autoincrement())
   user User @relation(fields:[userId], references:[id], onDelete: Cascade)

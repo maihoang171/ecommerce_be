@@ -38,7 +38,7 @@ describe("registerController", () => {
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual({
-      status: "error",
+      success: false,
       message: "Internal server error",
     });
   });
@@ -57,7 +57,7 @@ describe("registerController", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({
-      status: "error",
+      success: false,
       message: "Bad request",
     });
   });
@@ -70,7 +70,7 @@ describe("registerController", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({
-      status: "error",
+      success: false,
       message: "Missing fields or invalid input",
     });
   });
@@ -87,7 +87,7 @@ describe("registerController", () => {
 
     expect(response.statusCode).toBe(409);
     expect(response.body).toEqual({
-      status: "error",
+      success: false,
       message: "Duplicate record found",
     });
   });
