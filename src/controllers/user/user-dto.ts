@@ -1,4 +1,4 @@
-import type { User } from "../../../generated/prisma/client";
+import type { User } from "@prisma/client";
 import z from "zod";
 
 export const baseUserDTO = z.object({
@@ -41,7 +41,7 @@ export const registerUserDTO = baseUserDTO
 export const userResponseDto = (
   user: Pick<
     User,
-    "id" | "userName" | "firstName" | "lastName" | "phoneNumber" | "role"
+    "id" | "userName" | "firstName" | "lastName" | "phoneNumber" | "isAdmin"
   >,
 ) => {
   return {
@@ -50,6 +50,6 @@ export const userResponseDto = (
     firstName: user.firstName,
     lastName: user.lastName,
     phoneNumber: user.phoneNumber,
-    role: user.role,
+    isAdmin: user.isAdmin,
   };
 };

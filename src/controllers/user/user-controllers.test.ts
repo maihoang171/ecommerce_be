@@ -1,42 +1,50 @@
-import { it, expect, describe, vi } from "vitest";
-import express from "express";
-import { registerController, loginController } from "./user-controllers";
+import { describe, it, vi, expect, beforeEach } from "vitest";
+import { baseUserDTO, registerUserDTO } from "./user-dto";
 import {
   registerService,
   loginService,
-  createRefreshTokenService,
+  findUserByIdService,
 } from "../../services/user-services";
-import { beforeEach, afterEach } from "vitest";
-import { errorHandler } from "../../middleware/error";
-import request from "supertest";
+import {
+  registerController,
+  loginController,
+  getMeController,
+} from "./user-controllers";
+import { sendError, sendSuccess } from "../../utils/response-utils";
+import { userResponseDto } from "./user-dto";
+import {
+  generateAndSetAccessToken,
+  generateAndSetRefreshToken,
+} from "../../utils/token-utils";
 
 vi.mock("../../services/user-services", () => ({
   registerService: vi.fn(),
   loginService: vi.fn(),
-  createRefreshTokenService: vi.fn(),
+  findUserByIdService: vi.fn(),
 }));
 
-vi.mock("../../middleware/error", () => ({
-  errorHandler: vi.fn(),
+vi.mock("../../controllers/user/user-dto", () => ({
+  registerUserDTO: {
+    parse: vi.fn(),
+  },
+  userResponseDto: vi.fn((user) => user),
+  baseUserDTO: {
+    parse: vi.fn(),
+  },
 }));
 
-const app = express();
-app.use(express.json());
+vi.mock("../../utils/response-utils", () => ({
+  sendSuccess: vi.fn(),
+  sendError: vi.fn(),
+}));
 
-app.post("/register", registerController);
-app.post("/login", loginController);
-app.use(errorHandler);
+vi.mock("../../utils/token-utils", () => ({
+  generateAndSetAccessToken: vi.fn(),
+  generateAndSetRefreshToken: vi.fn(),
+}));
 
 describe("registerController", () => {
-  const mockUserData = {
-    id: 1,
-    userName: "HoangPham1",
-    firstName: "Hoang123",
-    lastName: "Pham",
-    phoneNumber: "0954908928",
-  };
-
-  const mockPayload = {
+  const mockValidUserData = {
     userName: "HoangPham1",
     password: "HoangPham123",
     firstName: "Hoang",
@@ -44,95 +52,280 @@ describe("registerController", () => {
     phoneNumber: "0954908928",
   };
 
+  const mockNewUser = {
+    id: 1,
+    ...mockValidUserData,
+    isAdmin: false,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should return status code 201, message and user data on success", async () => {
-    const mockResponse = {
-      success: true,
-      data: mockUserData,
+    const mockReq = {
+      body: mockValidUserData,
     };
+    const mockRes = {};
+    const mockNext = vi.fn();
 
-    vi.mocked(registerService).mockResolvedValue(mockUserData);
-    const response = await request(app).post("/register").send(mockPayload);
+    vi.mocked(registerUserDTO.parse).mockReturnValue(mockValidUserData);
+    vi.mocked(registerService).mockResolvedValue(mockNewUser);
 
-    expect(response.statusCode).toBe(201);
-    expect(response.body).toEqual(mockResponse);
+    await registerController(mockReq as any, mockRes as any, mockNext);
+
+    expect(registerUserDTO.parse).toHaveBeenCalledWith(mockValidUserData);
+    expect(registerService).toHaveBeenCalledWith(mockValidUserData);
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      201,
+      userResponseDto(mockNewUser),
+    );
   });
 
-  it("should register successfully even when phoneNumber is missing", async () => {
-    vi.mocked(registerService).mockResolvedValue(mockUserData);
+  it("should fallback phone number to empty string if it is not provided", async () => {
+    const { phoneNumber, ...mockValidUserDataWithoutPhone } = mockValidUserData;
+    const mockReq = {
+      body: {
+        mockValidUserDataWithoutPhone,
+      },
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
 
-    const { phoneNumber, ...mockPayloadWithoutPhone } = mockPayload;
+    vi.mocked(registerUserDTO.parse).mockReturnValue(
+      mockValidUserDataWithoutPhone,
+    );
+    vi.mocked(registerService).mockResolvedValue({
+      ...mockNewUser,
+      phoneNumber: "",
+    });
 
-    const response = await request(app)
-      .post("/register")
-      .send(mockPayloadWithoutPhone);
+    await registerController(mockReq as any, mockRes as any, mockNext);
 
-    expect(response.statusCode).toBe(201);
+    expect(registerUserDTO.parse).toHaveBeenCalledWith(mockReq.body);
+    expect(registerService).toHaveBeenCalledWith({
+      ...mockValidUserDataWithoutPhone,
+      phoneNumber: "",
+    });
+  });
+
+  it("should call next on zod validation error", async () => {
+    const mockReq = {
+      body: mockValidUserData,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockZodError = new Error("Zod validation error");
+
+    vi.mocked(registerUserDTO.parse).mockImplementation(() => {
+      throw mockZodError;
+    });
+
+    await registerController(mockReq as any, mockRes as any, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockZodError);
+  });
+
+  it("should call next on service error", async () => {
+    const mockReq = {
+      body: mockValidUserData,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockServiceError = new Error("Service error");
+
+    vi.mocked(registerUserDTO.parse).mockReturnValue(mockValidUserData);
+    vi.mocked(registerService).mockImplementation(() => {
+      throw mockServiceError;
+    });
+
+    await registerController(mockReq as any, mockRes as any, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockServiceError);
   });
 });
 
 describe("loginController", () => {
-  const mockValidPayload = {
+  const mockValidInput = {
     userName: "HoangPham1",
     password: "HoangPham123",
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    vi.stubEnv("JWT_SECRET", "super_secure_test_fallback_secret_key_123");
-    vi.stubEnv("NODE_ENV", "test");
   });
 
-  afterEach(() => {
-    // Clean up and restore original environment variables after each test
-    vi.unstubAllEnvs();
-  });
-
-  it("should return status code 200, message and user data on success", async () => {
-    const mockUserData = {
-      id: 1,
-      userName: "HoangPham1",
-      firstName: "Hoang123",
-      lastName: "Pham",
-      phoneNumber: "0954908928",
-      role: "USER",
+  it("should call next on zod validation error", async () => {
+    const mockReq = {
+      body: mockValidInput,
     };
-
-    const mockResponse = {
-      success: true,
-      data: mockUserData,
-    };
-    vi.mocked(loginService).mockResolvedValue(mockUserData);
-
-    const response = await request(app).post("/login").send(mockValidPayload);
-
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(mockResponse);
-  });
-
-  it("should return status code 401 on invalid username or password", async () => {
-    vi.mocked(loginService).mockResolvedValue(null);
-
-    const response = await request(app).post("/login").send(mockValidPayload);
-
-    expect(response.statusCode).toBe(401);
-  });
-
-  it("should call next middleware on error", async () => {
-    const mockError = new Error("Test error");
-    vi.mocked(loginService).mockRejectedValue(mockError);
+    const mockRes = {};
     const mockNext = vi.fn();
 
+    const mockZodError = new Error("Zod validation error");
+
+    vi.mocked(baseUserDTO.parse).mockImplementation(() => {
+      throw mockZodError;
+    });
+
+    await loginController(mockReq as any, mockRes as any, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockZodError);
+  });
+
+  it("should call next on service error", async () => {
     const mockReq = {
-      body: mockValidPayload,
+      body: mockValidInput,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockServiceError = new Error("Service error");
+
+    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
+    vi.mocked(loginService).mockRejectedValue(mockServiceError);
+
+    await loginController(mockReq as any, mockRes as any, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockServiceError);
+  });
+
+  it("should return status code 401 and error message on invalid username or password", async () => {
+    const mockReq = {
+      body: mockValidInput,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
+
+    vi.mocked(loginService).mockResolvedValue(null);
+
+    await loginController(mockReq as any, mockRes as any, mockNext);
+
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      401,
+      "Invalid username or password",
+    );
+  });
+
+  it("should generate tokens, set them in cookie, return status code 200 and user data on successfully login", async () => {
+    const mockReq = {
+      body: mockValidInput,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockUser = {
+      id: 1,
+      userName: "HoangPham1",
+      firstName: "Hoang",
+      lastName: "Pham",
+      phoneNumber: "0954908928",
+      isAdmin: false,
     };
 
-    await loginController(mockReq as any, {} as any, mockNext);
+    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
 
-    expect(mockNext).toHaveBeenCalledWith(mockError);
+    vi.mocked(loginService).mockResolvedValue(mockUser);
+
+    await loginController(mockReq as any, mockRes as any, mockNext);
+
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockRes, mockUser);
+    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
+
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      userResponseDto(mockUser),
+    );
+  });
+});
+
+describe("getMeController", () => {
+  const mockUser = {
+    id: 1,
+    userName: "HoangPham1",
+    isAdmin: false,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return error on unauthorized access", async () => {
+    const mockReq = {
+      user: null,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    await getMeController(mockReq as any, mockRes as any, mockNext);
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      401,
+      "Unauthorized access. Please login again!",
+    );
+  });
+
+  it("should call next on service error", async () => {
+    const mockReq = {
+      user: mockUser,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockServiceError = new Error("Service error");
+
+    vi.mocked(findUserByIdService).mockRejectedValue(mockServiceError);
+    await getMeController(mockReq as any, mockRes as any, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockServiceError);
+  });
+
+  it("should return status code 404 and error message on user no longer exists", async () => {
+    const mockReq = {
+      user: mockUser,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    vi.mocked(findUserByIdService).mockResolvedValue(null);
+
+    await getMeController(mockReq as any, mockRes as any, mockNext);
+
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      404,
+      "User no longer exists. Please login again!",
+    );
+  });
+
+  it("should return status code 200 and user data on successfully", async () => {
+    const mockReq = {
+      user: mockUser,
+    };
+    const mockRes = {};
+    const mockNext = vi.fn();
+
+    const mockUserResponse = {
+      ...mockUser,
+      firstName: "Hoang",
+      lastName: "Pham",
+      phoneNumber: "0954908928",
+    };
+
+    vi.mocked(findUserByIdService).mockResolvedValue(mockUserResponse);
+    await getMeController(mockReq as any, mockRes as any, mockNext);
+
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      userResponseDto(mockUserResponse),
+    );
   });
 });
