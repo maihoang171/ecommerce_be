@@ -1,19 +1,20 @@
 import jwt from "jsonwebtoken";
-import type { Response } from "express-serve-static-core";
+import type { Response, NextFunction } from "express-serve-static-core";
 import { createRefreshTokenService } from "../services/user-services";
+import { sendError } from "./response-utils";
 
 export const generateAndSetAccessToken = (
   res: Response,
   user: {
     id: number;
     userName: string;
-    role: string;
+    isAdmin: boolean;
   },
 ) => {
   const payload = {
     id: user.id,
     userName: user.userName,
-    role: user.role,
+    isAdmin: user.isAdmin,
   };
 
   const jwtSecret = process.env.JWT_SECRET!;
@@ -46,7 +47,15 @@ export const generateAndSetRefreshToken = async (
     expiresIn: "7d",
   });
 
-  await createRefreshTokenService(user.id, refreshToken);
+  try {
+    await createRefreshTokenService(user.id, refreshToken);
+  } catch (error) {
+    return sendError(
+      res,
+      500,
+      "Something went wrong when creating refresh token!",
+    );
+  }
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,

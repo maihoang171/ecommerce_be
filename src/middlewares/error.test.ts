@@ -16,7 +16,7 @@ describe("errorHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => { });
   });
 
   it("should return specific status code and message on error", () => {

@@ -6,7 +6,7 @@ import type {
 import jwt from "jsonwebtoken";
 import { sendError } from "../utils/response-utils";
 
-interface JwtUserPayload {
+export interface JwtUserPayload {
   id: number;
   userName: string;
   isAdmin: boolean;
