@@ -1,6 +1,6 @@
 import type { Response } from "express-serve-static-core";
 
-type ApiResponse<T> = {
+export type ApiResponse<T> = {
   success: boolean;
   message?: string;
   data?: T | null;
