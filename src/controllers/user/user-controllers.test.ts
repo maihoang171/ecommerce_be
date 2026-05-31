@@ -342,10 +342,10 @@ describe("getMeController", () => {
 
 describe("refreshTokenController", () => {
   const mockReq = {
-    cookies: {}
-  } as any
-  const mockRes = {} as any
-  const mockNext = vi.fn()
+    cookies: {},
+  } as any;
+  const mockRes = {} as any;
+  const mockNext = vi.fn();
 
   const mockUser = {
     id: 1,
@@ -358,14 +358,14 @@ describe("refreshTokenController", () => {
     expect(sendError).toHaveBeenCalledWith(
       mockRes,
       401,
-      "Refresh token is missing. Please login again!"
+      "Refresh token is missing. Please login again!",
     );
   });
 
   it("should return status code 401 and message on invalid refresh token or session expired", async () => {
     mockReq.cookies.refreshToken = "expired-or-revoked-token";
 
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any)
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
 
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(false);
 
@@ -374,13 +374,13 @@ describe("refreshTokenController", () => {
     expect(sendError).toHaveBeenCalledWith(
       mockRes,
       401,
-      "Invalid refresh token or session expired. Please login again!"
+      "Invalid refresh token or session expired. Please login again!",
     );
   });
 
   it("should return status code 404 and message on user no longer exists", async () => {
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any)
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
     vi.mocked(findUserByIdService).mockResolvedValue(null);
 
@@ -388,13 +388,13 @@ describe("refreshTokenController", () => {
     expect(sendError).toHaveBeenCalledWith(
       mockRes,
       404,
-      "User no longer exists. Please login again!"
+      "User no longer exists. Please login again!",
     );
-  })
+  });
 
   it("should return status code 200 and user data, generate tokens, set them in cookie on successfully", async () => {
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any)
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
     vi.mocked(findUserByIdService).mockResolvedValue(mockUser);
 
@@ -414,17 +414,17 @@ describe("refreshTokenController", () => {
       200,
       userResponseDto(mockUserResponse),
     );
-  })
+  });
 
   it("should call next on service error", async () => {
     const mockServiceError = new Error("Service error");
 
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any)
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
     vi.mocked(verifyRefreshTokenService).mockRejectedValue(mockServiceError);
 
     await refreshTokenController(mockReq, mockRes, mockNext);
 
     expect(mockNext).toHaveBeenCalledWith(mockServiceError);
-  })
+  });
 });
