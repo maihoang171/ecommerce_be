@@ -88,3 +88,21 @@ export const createRefreshTokenService = async (
     },
   });
 };
+
+export const verifyRefreshTokenService = async (
+  userId: number,
+  refreshToken: string,
+) => {
+  const refreshTokenFromDB = await prisma.refreshToken.findUnique({
+    where: {
+      userId,
+      token: refreshToken,
+    },
+  });
+
+  if (!refreshTokenFromDB) {
+    return false;
+  }
+
+  return refreshTokenFromDB.expiredAt >= new Date();
+};

@@ -4,11 +4,13 @@ import {
   registerService,
   loginService,
   findUserByIdService,
+  verifyRefreshTokenService,
 } from "../../services/user-services";
 import {
   registerController,
   loginController,
   getMeController,
+  refreshTokenController,
 } from "./user-controllers";
 import { sendError, sendSuccess } from "../../utils/response-utils";
 import { userResponseDto } from "./user-dto";
@@ -16,11 +18,13 @@ import {
   generateAndSetAccessToken,
   generateAndSetRefreshToken,
 } from "../../utils/token-utils";
+import jwt from "jsonwebtoken";
 
 vi.mock("../../services/user-services", () => ({
   registerService: vi.fn(),
   loginService: vi.fn(),
   findUserByIdService: vi.fn(),
+  verifyRefreshTokenService: vi.fn(),
 }));
 
 vi.mock("../../controllers/user/user-dto", () => ({
@@ -41,6 +45,12 @@ vi.mock("../../utils/response-utils", () => ({
 vi.mock("../../utils/token-utils", () => ({
   generateAndSetAccessToken: vi.fn(),
   generateAndSetRefreshToken: vi.fn(),
+}));
+
+vi.mock("jsonwebtoken", () => ({
+  default: {
+    verify: vi.fn(),
+  },
 }));
 
 describe("registerController", () => {
@@ -327,5 +337,94 @@ describe("getMeController", () => {
       200,
       userResponseDto(mockUserResponse),
     );
+  });
+});
+
+describe("refreshTokenController", () => {
+  const mockReq = {
+    cookies: {},
+  } as any;
+  const mockRes = {} as any;
+  const mockNext = vi.fn();
+
+  const mockUser = {
+    id: 1,
+    userName: "HoangPham1",
+    isAdmin: false,
+  };
+
+  it("should return status code 401 and message on missing refresh token", () => {
+    refreshTokenController(mockReq, mockRes, mockNext);
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      401,
+      "Refresh token is missing. Please login again!",
+    );
+  });
+
+  it("should return status code 401 and message on invalid refresh token or session expired", async () => {
+    mockReq.cookies.refreshToken = "expired-or-revoked-token";
+
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+
+    vi.mocked(verifyRefreshTokenService).mockResolvedValue(false);
+
+    await refreshTokenController(mockReq, mockRes, mockNext);
+
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      401,
+      "Invalid refresh token or session expired. Please login again!",
+    );
+  });
+
+  it("should return status code 404 and message on user no longer exists", async () => {
+    mockReq.cookies.refreshToken = "valid-token";
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
+    vi.mocked(findUserByIdService).mockResolvedValue(null);
+
+    await refreshTokenController(mockReq, mockRes, mockNext);
+    expect(sendError).toHaveBeenCalledWith(
+      mockRes,
+      404,
+      "User no longer exists. Please login again!",
+    );
+  });
+
+  it("should return status code 200 and user data, generate tokens, set them in cookie on successfully", async () => {
+    mockReq.cookies.refreshToken = "valid-token";
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
+    vi.mocked(findUserByIdService).mockResolvedValue(mockUser);
+
+    await refreshTokenController(mockReq, mockRes, mockNext);
+
+    const mockUserResponse = {
+      ...mockUser,
+      firstName: "Hoang",
+      lastName: "Pham",
+      phoneNumber: "0954908928",
+    };
+
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockRes, mockUser);
+    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      userResponseDto(mockUserResponse),
+    );
+  });
+
+  it("should call next on service error", async () => {
+    const mockServiceError = new Error("Service error");
+
+    mockReq.cookies.refreshToken = "valid-token";
+    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(verifyRefreshTokenService).mockRejectedValue(mockServiceError);
+
+    await refreshTokenController(mockReq, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockServiceError);
   });
 });
