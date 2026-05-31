@@ -1,11 +1,17 @@
-import type { User } from "../../generated/prisma/client";
+import type { User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { hashPassword, verifyPassword } from "../utils/user-utils";
 import { addDays } from "date-fns";
 
-export const findUserByUserName = async (userName: string) => {
+export const findUserByUserNameService = async (userName: string) => {
   return await prisma.user.findUnique({
     where: { userName },
+  });
+};
+
+export const findUserByIdService = async (id: number) => {
+  return await prisma.user.findUnique({
+    where: { id },
   });
 };
 
@@ -17,7 +23,7 @@ export const registerService = async (
 ) => {
   const { userName, password, firstName, lastName, phoneNumber } = user;
 
-  const existingUser = await findUserByUserName(userName);
+  const existingUser = await findUserByUserNameService(userName);
   if (existingUser) {
     let error = new Error(
       "User registration failed: username already exists",
@@ -42,8 +48,8 @@ export const registerService = async (
 };
 
 export const loginService = async (userName: string, password: string) => {
-  const user = await findUserByUserName(userName);
-  if (!userName) {
+  const user = await findUserByUserNameService(userName);
+  if (!user) {
     let error = new Error("User not found") as Error & { statusCode: number };
     error.statusCode = 404;
     throw error;

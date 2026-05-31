@@ -4,9 +4,9 @@ import type {
   NextFunction,
 } from "express-serve-static-core";
 import { ZodError } from "zod";
-import {sendError} from "../utils/response-utils"
+import { sendError } from "../utils/response-utils";
 
-type ErrorWithStatusCode = Error & { statusCode: number; code?: string };
+export type ErrorWithStatusCode = Error & { statusCode: number; code?: string };
 
 export const errorHandler = (
   err: ErrorWithStatusCode,
@@ -27,7 +27,7 @@ export const errorHandler = (
     statusCode = 400;
     message = "Missing fields or invalid input";
   }
-  
+
   console.error(`Error: ${message}`);
-  sendError(res, statusCode, message)
+  sendError(res, statusCode, message);
 };

@@ -51,8 +51,7 @@ describe("verifyPassword", () => {
     const result = verifyPassword(mockedPassword, `${salt}:${derivedKey}`);
 
     expect(result).toBe(false);
-  }
-)
+  });
   it("should return false when the password does not match the hashed password", () => {
     const anotherPassword = "AnotherPassword123";
     const result = verifyPassword(anotherPassword, hashedPassword);

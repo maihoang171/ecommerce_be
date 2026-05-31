@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import type { Response } from "express-serve-static-core";
 import { createRefreshTokenService } from "../services/user-services";
 
-export const generateAndSetTokens = async (
+export const generateAndSetAccessToken = (
   res: Response,
   user: {
     id: number;
@@ -10,7 +10,7 @@ export const generateAndSetTokens = async (
     role: string;
   },
 ) => {
-  const accessTokenPayload = {
+  const payload = {
     id: user.id,
     userName: user.userName,
     role: user.role,
@@ -19,7 +19,7 @@ export const generateAndSetTokens = async (
   const jwtSecret = process.env.JWT_SECRET!;
 
   const oneHour = 60 * 60 * 1000;
-  const accessToken = jwt.sign(accessTokenPayload, jwtSecret, {
+  const accessToken = jwt.sign(payload, jwtSecret, {
     expiresIn: "1h",
   });
 
@@ -29,14 +29,20 @@ export const generateAndSetTokens = async (
     sameSite: "strict",
     maxAge: oneHour,
   });
+};
 
-  //Create refresh token
-  const refreshTokenPayload = {
+export const generateAndSetRefreshToken = async (
+  res: Response,
+  user: { id: number },
+) => {
+  const payload = {
     id: user.id,
   };
 
+  const jwtSecret = process.env.JWT_SECRET!;
+
   const sevenDay = 7 * 24 * 60 * 60 * 1000;
-  const refreshToken = jwt.sign(refreshTokenPayload, jwtSecret, {
+  const refreshToken = jwt.sign(payload, jwtSecret, {
     expiresIn: "7d",
   });
 

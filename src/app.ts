@@ -1,13 +1,15 @@
 import express from "express";
 import type { Request, Response } from "express";
+import cookieParser from "cookie-parser";
 import router from "./router/routes";
-import morgan from "morgan"
-import { errorHandler } from "./middleware/error";
+import morgan from "morgan";
+import { errorHandler } from "./middlewares/error";
 
 const app = express();
 
-app.use(morgan("dev"))
+app.use(morgan("dev"));
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req: Request, res: Response) => {
@@ -17,5 +19,5 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/v1", router);
-app.use(errorHandler)
+app.use(errorHandler);
 export default app;
