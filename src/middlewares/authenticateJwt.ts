@@ -27,14 +27,23 @@ export const authenticateJwt = (
 ) => {
   try {
     const jwtSecret = process.env.JWT_SECRET!;
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
-      return sendError(res, 401, "Token is missing. Please login again!");
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return sendError(res, 401, "Token is missing or invalid format.");
     }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    if (!accessToken) {
+      return sendError(res, 401, "Token is missing or invalid format.");
+    }
+
     const decoded = jwt.verify(accessToken, jwtSecret);
     req.user = decoded as JwtUserPayload;
     next();
   } catch (error) {
-    return sendError(res, 401, "Invalid token. Please login again!");
+    return sendError(res, 401, "Invalid token.");
   }
 };

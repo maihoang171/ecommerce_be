@@ -6,10 +6,7 @@ describe("userResponseDTO", () => {
     const mockDbUser = {
       id: 1,
       userName: "HoangPham1",
-      password: "hassPassword123",
-      firstName: "Hoang",
-      lastName: "Pham",
-      phoneNumber: "0954908928",
+      password: "hashedPassword123",
       isAdmin: false,
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -1,18 +1,18 @@
 import { describe, it, vi, expect, beforeEach } from "vitest";
-import { baseUserDTO, registerUserDTO } from "./user-dto";
+import { baseUserSchema } from "../../schemas/authSchema";
 import {
   registerService,
   loginService,
   findUserByIdService,
   verifyRefreshTokenService,
-} from "../../services/user-services";
+} from "../../services/auth-services";
 import {
   registerController,
   loginController,
   getMeController,
   refreshTokenController,
 } from "./user-controllers";
-import { sendError, sendSuccess } from "../../utils/response-utils";
+import { sendAuthSuccess, sendError, sendSuccess } from "../../utils/response-utils";
 import { userResponseDto } from "./user-dto";
 import {
   generateAndSetAccessToken,
@@ -20,7 +20,7 @@ import {
 } from "../../utils/token-utils";
 import jwt from "jsonwebtoken";
 
-vi.mock("../../services/user-services", () => ({
+vi.mock("../../services/auth-services", () => ({
   registerService: vi.fn(),
   loginService: vi.fn(),
   findUserByIdService: vi.fn(),
@@ -28,11 +28,11 @@ vi.mock("../../services/user-services", () => ({
 }));
 
 vi.mock("../../controllers/user/user-dto", () => ({
-  registerUserDTO: {
+  registerUserSchema: {
     parse: vi.fn(),
   },
   userResponseDto: vi.fn((user) => user),
-  baseUserDTO: {
+  baseUserSchema: {
     parse: vi.fn(),
   },
 }));
@@ -40,6 +40,7 @@ vi.mock("../../controllers/user/user-dto", () => ({
 vi.mock("../../utils/response-utils", () => ({
   sendSuccess: vi.fn(),
   sendError: vi.fn(),
+  sendAuthSuccess: vi.fn(),
 }));
 
 vi.mock("../../utils/token-utils", () => ({
@@ -57,9 +58,6 @@ describe("registerController", () => {
   const mockValidUserData = {
     userName: "HoangPham1",
     password: "HoangPham123",
-    firstName: "Hoang",
-    lastName: "Pham",
-    phoneNumber: "0954908928",
   };
 
   const mockNewUser = {
@@ -79,12 +77,12 @@ describe("registerController", () => {
     const mockRes = {};
     const mockNext = vi.fn();
 
-    vi.mocked(registerUserDTO.parse).mockReturnValue(mockValidUserData);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidUserData);
     vi.mocked(registerService).mockResolvedValue(mockNewUser);
 
     await registerController(mockReq as any, mockRes as any, mockNext);
 
-    expect(registerUserDTO.parse).toHaveBeenCalledWith(mockValidUserData);
+    expect(baseUserSchema.parse).toHaveBeenCalledWith(mockValidUserData);
     expect(registerService).toHaveBeenCalledWith(mockValidUserData);
     expect(sendSuccess).toHaveBeenCalledWith(
       mockRes,
@@ -93,32 +91,32 @@ describe("registerController", () => {
     );
   });
 
-  it("should fallback phone number to empty string if it is not provided", async () => {
-    const { phoneNumber, ...mockValidUserDataWithoutPhone } = mockValidUserData;
-    const mockReq = {
-      body: {
-        mockValidUserDataWithoutPhone,
-      },
-    };
-    const mockRes = {};
-    const mockNext = vi.fn();
+  // it("should fallback phone number to empty string if it is not provided", async () => {
+  //   const { phoneNumber, ...mockValidUserDataWithoutPhone } = mockValidUserData;
+  //   const mockReq = {
+  //     body: {
+  //       mockValidUserDataWithoutPhone,
+  //     },
+  //   };
+  //   const mockRes = {};
+  //   const mockNext = vi.fn();
 
-    vi.mocked(registerUserDTO.parse).mockReturnValue(
-      mockValidUserDataWithoutPhone,
-    );
-    vi.mocked(registerService).mockResolvedValue({
-      ...mockNewUser,
-      phoneNumber: "",
-    });
+  //   vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(
+  //     mockValidUserDataWithoutPhone,
+  //   );
+  //   vi.mocked(registerService).mockResolvedValue({
+  //     ...mockNewUser,
+  //     phoneNumber: "",
+  //   });
 
-    await registerController(mockReq as any, mockRes as any, mockNext);
+  //   await registerController(mockReq as any, mockRes as any, mockNext);
 
-    expect(registerUserDTO.parse).toHaveBeenCalledWith(mockReq.body);
-    expect(registerService).toHaveBeenCalledWith({
-      ...mockValidUserDataWithoutPhone,
-      phoneNumber: "",
-    });
-  });
+  //   expect(baseUserSchema.parse).toHaveBeenCalledWith(mockReq.body);
+  //   expect(registerService).toHaveBeenCalledWith({
+  //     ...mockValidUserDataWithoutPhone,
+  //     phoneNumber: "",
+  //   });
+  // });
 
   it("should call next on zod validation error", async () => {
     const mockReq = {
@@ -129,7 +127,7 @@ describe("registerController", () => {
 
     const mockZodError = new Error("Zod validation error");
 
-    vi.mocked(registerUserDTO.parse).mockImplementation(() => {
+    vi.spyOn(baseUserSchema as any, "parse").mockImplementation(() => {
       throw mockZodError;
     });
 
@@ -147,7 +145,7 @@ describe("registerController", () => {
 
     const mockServiceError = new Error("Service error");
 
-    vi.mocked(registerUserDTO.parse).mockReturnValue(mockValidUserData);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidUserData);
     vi.mocked(registerService).mockImplementation(() => {
       throw mockServiceError;
     });
@@ -177,7 +175,7 @@ describe("loginController", () => {
 
     const mockZodError = new Error("Zod validation error");
 
-    vi.mocked(baseUserDTO.parse).mockImplementation(() => {
+    vi.spyOn(baseUserSchema as any, "parse").mockImplementation(() => {
       throw mockZodError;
     });
 
@@ -195,7 +193,7 @@ describe("loginController", () => {
 
     const mockServiceError = new Error("Service error");
 
-    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidInput);
     vi.mocked(loginService).mockRejectedValue(mockServiceError);
 
     await loginController(mockReq as any, mockRes as any, mockNext);
@@ -210,7 +208,7 @@ describe("loginController", () => {
     const mockRes = {};
     const mockNext = vi.fn();
 
-    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidInput);
 
     vi.mocked(loginService).mockResolvedValue(null);
 
@@ -233,24 +231,24 @@ describe("loginController", () => {
     const mockUser = {
       id: 1,
       userName: "HoangPham1",
-      firstName: "Hoang",
-      lastName: "Pham",
-      phoneNumber: "0954908928",
       isAdmin: false,
     };
 
-    vi.mocked(baseUserDTO.parse).mockReturnValue(mockValidInput);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidInput);
 
     vi.mocked(loginService).mockResolvedValue(mockUser);
 
     await loginController(mockReq as any, mockRes as any, mockNext);
 
-    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockRes, mockUser);
+    const accessToken = await generateAndSetAccessToken(mockUser);
+
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUser);
     expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
 
-    expect(sendSuccess).toHaveBeenCalledWith(
+    expect(sendAuthSuccess).toHaveBeenCalledWith(
       mockRes,
       200,
+      accessToken,
       userResponseDto(mockUser),
     );
   });
@@ -324,9 +322,6 @@ describe("getMeController", () => {
 
     const mockUserResponse = {
       ...mockUser,
-      firstName: "Hoang",
-      lastName: "Pham",
-      phoneNumber: "0954908928",
     };
 
     vi.mocked(findUserByIdService).mockResolvedValue(mockUserResponse);
@@ -402,16 +397,15 @@ describe("refreshTokenController", () => {
 
     const mockUserResponse = {
       ...mockUser,
-      firstName: "Hoang",
-      lastName: "Pham",
-      phoneNumber: "0954908928",
     };
 
-    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockRes, mockUser);
+    const accessToken = await generateAndSetAccessToken(mockUser);
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUser);
     expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
-    expect(sendSuccess).toHaveBeenCalledWith(
+    expect(sendAuthSuccess).toHaveBeenCalledWith(
       mockRes,
       200,
+      accessToken,
       userResponseDto(mockUserResponse),
     );
   });
