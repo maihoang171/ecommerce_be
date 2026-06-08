@@ -5,14 +5,14 @@ import {
   generateAndSetRefreshToken,
 } from "../utils/token-utils";
 import jwt from "jsonwebtoken";
-import { createRefreshTokenService } from "../services/user-services";
+import { createRefreshTokenService } from "../services/auth-services";
 import { sendError } from "./response-utils";
 
 vi.mock("jsonwebtoken", () => ({
   default: { sign: vi.fn() },
 }));
 
-vi.mock("../services/user-services", () => ({
+vi.mock("../services/auth-services", () => ({
   createRefreshTokenService: vi.fn(),
 }));
 
@@ -42,10 +42,10 @@ describe("token utilities", () => {
 
     const mockAccessToken = "mocked-token";
 
-    it("should ssign a JWT with the correct payload and set the accessToken cookie", () => {
+    it("should sign a JWT with the correct payload and set the accessToken cookie", () => {
       (jwt.sign as any).mockReturnValue(mockAccessToken);
 
-      generateAndSetAccessToken(mockRes, mockUser);
+      generateAndSetAccessToken(mockUser);
 
       expect(jwt.sign).toHaveBeenCalledWith(
         {
@@ -56,35 +56,6 @@ describe("token utilities", () => {
         TEST_SECRET,
         {
           expiresIn: "1h",
-        },
-      );
-
-      expect(mockRes.cookie).toHaveBeenCalledWith(
-        "accessToken",
-        mockAccessToken,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "strict",
-          maxAge: 60 * 60 * 1000,
-        },
-      );
-    });
-
-    it("should turn secure true in production", () => {
-      vi.stubEnv("NODE_ENV", "production");
-
-      (jwt.sign as any).mockReturnValue(mockAccessToken);
-      generateAndSetAccessToken(mockRes, mockUser);
-
-      expect(mockRes.cookie).toHaveBeenCalledWith(
-        "accessToken",
-        mockAccessToken,
-        {
-          httpOnly: true,
-          secure: true,
-          sameSite: "strict",
-          maxAge: 60 * 60 * 1000,
         },
       );
     });

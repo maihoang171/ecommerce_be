@@ -41,10 +41,12 @@ describe("verifyPassword", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
   it("should return true when the password matches the hashed password", () => {
     const result = verifyPassword(mockedPassword, hashedPassword);
     expect(result).toBe(true);
   });
+
   it("should return false when the salt or derived key are missing", () => {
     const salt = "";
     const derivedKey = "";
@@ -52,6 +54,7 @@ describe("verifyPassword", () => {
 
     expect(result).toBe(false);
   });
+
   it("should return false when the password does not match the hashed password", () => {
     const anotherPassword = "AnotherPassword123";
     const result = verifyPassword(anotherPassword, hashedPassword);

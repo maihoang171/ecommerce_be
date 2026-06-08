@@ -16,12 +16,9 @@ export const findUserByIdService = async (id: number) => {
 };
 
 export const registerService = async (
-  user: Pick<
-    User,
-    "userName" | "password" | "firstName" | "lastName" | "phoneNumber"
-  >,
+  user: Pick<User, "userName" | "password">,
 ) => {
-  const { userName, password, firstName, lastName, phoneNumber } = user;
+  const { userName, password } = user;
 
   const existingUser = await findUserByUserNameService(userName);
   if (existingUser) {
@@ -38,9 +35,6 @@ export const registerService = async (
     data: {
       userName,
       password: hashedPassword,
-      firstName,
-      lastName,
-      phoneNumber,
     },
   });
 
@@ -93,7 +87,7 @@ export const verifyRefreshTokenService = async (
   userId: number,
   refreshToken: string,
 ) => {
-  const refreshTokenFromDB = await prisma.refreshToken.findUnique({
+  const refreshTokenFromDB = await prisma.refreshToken.findFirst({
     where: {
       userId,
       token: refreshToken,

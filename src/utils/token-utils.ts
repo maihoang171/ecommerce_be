@@ -1,16 +1,13 @@
 import jwt from "jsonwebtoken";
 import type { Response, NextFunction } from "express-serve-static-core";
-import { createRefreshTokenService } from "../services/user-services";
+import { createRefreshTokenService } from "../services/auth-services";
 import { sendError } from "./response-utils";
 
-export const generateAndSetAccessToken = (
-  res: Response,
-  user: {
-    id: number;
-    userName: string;
-    isAdmin: boolean;
-  },
-) => {
+export const generateAndSetAccessToken = (user: {
+  id: number;
+  userName: string;
+  isAdmin: boolean;
+}) => {
   const payload = {
     id: user.id,
     userName: user.userName,
@@ -19,16 +16,8 @@ export const generateAndSetAccessToken = (
 
   const jwtSecret = process.env.JWT_SECRET!;
 
-  const oneHour = 60 * 60 * 1000;
-  const accessToken = jwt.sign(payload, jwtSecret, {
+  return jwt.sign(payload, jwtSecret, {
     expiresIn: "1h",
-  });
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: oneHour,
   });
 };
 
