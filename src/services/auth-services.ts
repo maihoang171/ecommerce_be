@@ -100,3 +100,11 @@ export const verifyRefreshTokenService = async (
 
   return refreshTokenFromDB.expiredAt >= new Date();
 };
+
+export const logoutService = async (userId: number) => {
+  return await prisma.refreshToken.deleteMany({
+    where: {
+      userId,
+    },
+  });
+}

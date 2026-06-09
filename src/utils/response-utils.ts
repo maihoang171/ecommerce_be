@@ -7,10 +7,11 @@ export type ApiResponse<T> = {
   data?: T | null;
 };
 
-export const sendSuccess = <T>(res: Response, statusCode: number, data: T) => {
+export const sendSuccess = <T>(res: Response, statusCode: number, data: T, message: string = '') => {
   const payload: ApiResponse<T> = {
     success: true,
     data,
+    message
   };
   return res.status(statusCode).json(payload);
 };
