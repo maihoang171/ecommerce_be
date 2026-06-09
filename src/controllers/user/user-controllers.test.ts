@@ -5,14 +5,20 @@ import {
   loginService,
   findUserByIdService,
   verifyRefreshTokenService,
+  logoutService,
 } from "../../services/auth-services";
 import {
   registerController,
   loginController,
   getMeController,
   refreshTokenController,
+  logoutController,
 } from "./user-controllers";
-import { sendAuthSuccess, sendError, sendSuccess } from "../../utils/response-utils";
+import {
+  sendAuthSuccess,
+  sendError,
+  sendSuccess,
+} from "../../utils/response-utils";
 import { userResponseDto } from "./user-dto";
 import {
   generateAndSetAccessToken,
@@ -25,6 +31,7 @@ vi.mock("../../services/auth-services", () => ({
   loginService: vi.fn(),
   findUserByIdService: vi.fn(),
   verifyRefreshTokenService: vi.fn(),
+  logoutService: vi.fn(),
 }));
 
 vi.mock("../../controllers/user/user-dto", () => ({
@@ -90,33 +97,6 @@ describe("registerController", () => {
       userResponseDto(mockNewUser),
     );
   });
-
-  // it("should fallback phone number to empty string if it is not provided", async () => {
-  //   const { phoneNumber, ...mockValidUserDataWithoutPhone } = mockValidUserData;
-  //   const mockReq = {
-  //     body: {
-  //       mockValidUserDataWithoutPhone,
-  //     },
-  //   };
-  //   const mockRes = {};
-  //   const mockNext = vi.fn();
-
-  //   vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(
-  //     mockValidUserDataWithoutPhone,
-  //   );
-  //   vi.mocked(registerService).mockResolvedValue({
-  //     ...mockNewUser,
-  //     phoneNumber: "",
-  //   });
-
-  //   await registerController(mockReq as any, mockRes as any, mockNext);
-
-  //   expect(baseUserSchema.parse).toHaveBeenCalledWith(mockReq.body);
-  //   expect(registerService).toHaveBeenCalledWith({
-  //     ...mockValidUserDataWithoutPhone,
-  //     phoneNumber: "",
-  //   });
-  // });
 
   it("should call next on zod validation error", async () => {
     const mockReq = {
@@ -420,5 +400,99 @@ describe("refreshTokenController", () => {
     await refreshTokenController(mockReq, mockRes, mockNext);
 
     expect(mockNext).toHaveBeenCalledWith(mockServiceError);
+  });
+});
+
+describe("logoutController", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should display console.error if error verifying refresh token during fallback logout", async () => {
+    const mockReq = {
+      user: {
+        id: undefined,
+      },
+      cookies: {
+        refreshToken: "invalid-token",
+      },
+    } as any;
+
+    const mockRes = {
+      clearCookie: vi.fn(),
+    } as any;
+
+    const mockNext = vi.fn();
+
+    const mockJwtError = new Error("Service error");
+    vi.mocked(jwt.verify).mockImplementation(() => {
+      throw mockJwtError;
+    })
+
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { })
+    await logoutController(mockReq, mockRes, mockNext);
+
+    expect(consoleSpy).toHaveBeenCalledWith("Error verifying refresh token during fallback logout:",
+      mockJwtError);
+  })
+  
+  it("should clear refresh token cookie and call sendSuccess on success", async () => {
+    const mockReq = {
+      user: {
+        id: 1,
+      },
+      cookies: {
+        refreshToken: "valid-token",
+      },
+    } as any;
+
+    const mockRes = {
+      clearCookie: vi.fn(),
+    } as any;
+
+    const mockNext = vi.fn();
+
+    await logoutController(mockReq, mockRes, mockNext);
+
+    expect(mockRes.clearCookie).toHaveBeenCalledWith("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/api/v1/auth/refresh-token",
+    });
+
+    expect(logoutService).toHaveBeenCalledWith(mockReq.user.id);
+
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      null,
+      "Logged out successfully",
+    );
+  });
+
+  it("should call next on service error", async () => {
+    const mockReq = {
+      user: {
+        id: 1,
+      },
+      cookies: {
+        refreshToken: "valid-token",
+      },
+    } as any;
+
+    const mockRes = {
+      clearCookie: vi.fn(),
+    } as any;
+
+    const mockNext = vi.fn();
+
+    const mockServiceErr = new Error("Service error");
+
+    vi.mocked(logoutService).mockRejectedValue(mockServiceErr);
+
+    await logoutController(mockReq, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockServiceErr);
   });
 });

@@ -21,6 +21,7 @@ describe("response utilities", () => {
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
         data: mockData,
+        message: "",
       });
     });
   });

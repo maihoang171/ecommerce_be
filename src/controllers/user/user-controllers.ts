@@ -10,8 +10,13 @@ import {
   loginService,
   findUserByIdService,
   verifyRefreshTokenService,
+  logoutService,
 } from "../../services/auth-services";
-import { sendAuthSuccess, sendError, sendSuccess } from "../../utils/response-utils";
+import {
+  sendAuthSuccess,
+  sendError,
+  sendSuccess,
+} from "../../utils/response-utils";
 import {
   generateAndSetAccessToken,
   generateAndSetRefreshToken,
@@ -118,6 +123,46 @@ export const refreshTokenController = async (
     await generateAndSetRefreshToken(res, user);
 
     sendAuthSuccess(res, 200, accessToken, userResponseDto(user));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    let userId = req.user?.id;
+
+    const refreshToken = req.cookies.refreshToken;
+    if (!userId && refreshToken) {
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as {
+          id: number;
+        };
+        userId = decoded.id;
+      } catch (error) {
+        console.error(
+          "Error verifying refresh token during fallback logout:",
+          error,
+        );
+      }
+    }
+
+    if (userId) {
+      await logoutService(userId);
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/api/v1/auth/refresh-token",
+    });
+
+    sendSuccess(res, 200, null, "Logged out successfully");
   } catch (error) {
     next(error);
   }
