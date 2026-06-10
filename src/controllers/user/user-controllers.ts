@@ -106,6 +106,7 @@ export const refreshTokenController = async (
       decoded.id,
       oldRefreshToken,
     );
+
     if (!isTokenValid) {
       return sendError(
         res,
@@ -122,7 +123,7 @@ export const refreshTokenController = async (
     const accessToken = generateAndSetAccessToken(user);
     await generateAndSetRefreshToken(res, user);
 
-    sendAuthSuccess(res, 200, accessToken, userResponseDto(user));
+    sendAuthSuccess(res, 200, accessToken, null);
   } catch (error) {
     next(error);
   }

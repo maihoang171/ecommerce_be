@@ -18,6 +18,11 @@ export const errorHandler = (
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal server error";
 
+  if (err.message.toLowerCase().includes("prisma")) {
+    statusCode = 500;
+    message = "Server is undergoing maintenance. Please try again later.";
+  }
+
   if (err.code === "P2002") {
     statusCode = 409;
     message = "Duplicate record found";
