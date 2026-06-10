@@ -27,6 +27,7 @@ export const sendAuthSuccess = <T>(
     accessToken,
     data,
   };
+  
   return res.status(statusCode).json(payload);
 };
 

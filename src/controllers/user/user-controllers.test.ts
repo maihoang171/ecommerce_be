@@ -386,7 +386,7 @@ describe("refreshTokenController", () => {
       mockRes,
       200,
       accessToken,
-      userResponseDto(mockUserResponse),
+      null,
     );
   });
 
