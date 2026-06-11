@@ -133,8 +133,13 @@ model Payment {
 model Category {
   id Int @id @default(autoincrement())
   name String @unique
+  slug String @unique
   imageUrl String
   products Product[]
+  parentId Int?
+  parent Category? @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryToCategory")
+  @@index([parentId])
 }
 
 
