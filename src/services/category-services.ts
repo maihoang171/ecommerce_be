@@ -15,6 +15,15 @@ export const findCategoryListService = async () => {
         },
         orderBy: { name: "asc" },
       },
+      campaigns: {
+        select: {
+          id: true,
+          title: true,
+          subTitle: true,
+          imageUrl: true,
+          linkUrl: true,
+        },
+      },
     },
   });
 };

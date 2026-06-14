@@ -139,9 +139,20 @@ model Category {
   parentId Int?
   parent Category? @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryToCategory")
+  campaigns Campaign[]
+  
   @@index([parentId])
 }
 
+model Campaign {
+  id Int @id @default(autoincrement())
+  title String
+  subTitle String
+  imageUrl String 
+  linkUrl String
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
 
 // -----Product--------------
 model Product{
