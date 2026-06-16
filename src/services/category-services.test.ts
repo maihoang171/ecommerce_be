@@ -1,5 +1,8 @@
 import { describe, vi, expect, it } from "vitest";
-import { findCategoryListService, findProductListByCategorySlugService } from "./category-services";
+import {
+  findCategoryListService,
+  findProductListByCategorySlugService,
+} from "./category-services";
 import { prisma } from "../lib/prisma";
 import { findCategoryIdsBySlug } from "../helpers/category-helpers";
 
@@ -43,7 +46,7 @@ describe("findCategoryListService", () => {
 
 describe("findProductListByCategorySlugService", () => {
   it("should return product list on success", async () => {
-    const mockSlug = "women"
+    const mockSlug = "women";
     const mockCategoryIds = [1, 2, 3];
     vi.mocked(findCategoryIdsBySlug).mockResolvedValue(mockCategoryIds);
 
@@ -80,7 +83,7 @@ describe("findProductListByCategorySlugService", () => {
 
     const result = await findProductListByCategorySlugService(mockSlug);
 
-    expect(result).toEqual(mockProducts)
-    expect(prisma.product.findMany).toHaveBeenCalledTimes(1)
+    expect(result).toEqual(mockProducts);
+    expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
   });
 });

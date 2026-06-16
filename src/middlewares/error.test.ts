@@ -16,7 +16,7 @@ describe("errorHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(console, "error").mockImplementation(() => { });
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   it("should return specific status code and message on error", () => {
@@ -51,9 +51,10 @@ describe("errorHandler", () => {
   });
 
   it("should return status code 500 and error message on prisma error", () => {
-    const mockErrMsg = "prisma error"
+    const mockErrMsg = "prisma error";
 
-    const mockErrMsgRes = "Server is undergoing maintenance. Please try again later.";
+    const mockErrMsgRes =
+      "Server is undergoing maintenance. Please try again later.";
     const mockError = new Error(mockErrMsgRes) as ErrorWithStatusCode;
     mockError.message = mockErrMsg;
 
@@ -64,12 +65,8 @@ describe("errorHandler", () => {
       mockNext,
     );
 
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      500,
-      mockErrMsgRes,
-    )
-  })
+    expect(sendError).toHaveBeenCalledWith(mockRes, 500, mockErrMsgRes);
+  });
 
   it("should return status code 400 and error message on ZodError", () => {
     const mockErrMessage = "Missing fields or invalid input";

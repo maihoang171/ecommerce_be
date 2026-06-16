@@ -1,5 +1,4 @@
-import { beforeEach, mock } from "node:test";
-import { describe, vi, expect, it } from "vitest";
+import { describe, vi, expect, it, beforeEach } from "vitest";
 import {
   findCategoryListService,
   findProductListByCategorySlugService,
@@ -198,6 +197,10 @@ describe("find productList", () => {
     );
     await findProductListByCategorySlugController(mockReq, mockRes, mockNext);
 
-    expect(sendSuccess).toHaveBeenCalledWith(mockRes, 200, mockProductListResponse);
+    expect(sendSuccess).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      mockProductListResponse,
+    );
   });
 });

@@ -12,13 +12,20 @@ import {
   verifyRefreshTokenService,
   logoutService,
 } from "../../services/auth-services";
-import { sendAuthSuccess, sendError, sendSuccess } from "../../utils/response-utils";
+import {
+  sendAuthSuccess,
+  sendError,
+  sendSuccess,
+} from "../../utils/response-utils";
 import {
   generateAndSetAccessToken,
   generateAndSetRefreshToken,
 } from "../../utils/token-utils";
 import jwt from "jsonwebtoken";
-import { NotFoundError, UnauthorizedError } from "../../utils/custom-errors-utils";
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from "../../utils/custom-errors-utils";
 
 export const registerController = async (
   req: Request,
@@ -95,7 +102,7 @@ export const refreshTokenController = async (
     }
 
     let decoded: { id: number };
-    
+
     try {
       decoded = jwt.verify(oldRefreshToken, process.env.JWT_SECRET!) as {
         id: number;

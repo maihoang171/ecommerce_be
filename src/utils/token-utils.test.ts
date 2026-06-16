@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Response } from "express-serve-static-core";
-import { generateAndSetAccessToken, generateAndSetRefreshToken } from "./token-utils";
+import {
+  generateAndSetAccessToken,
+  generateAndSetRefreshToken,
+} from "./token-utils";
 import jwt from "jsonwebtoken";
 import { createRefreshTokenService } from "../services/auth-services";
 import { sendError } from "./response-utils";

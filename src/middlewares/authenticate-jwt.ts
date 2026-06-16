@@ -4,7 +4,6 @@ import type {
   NextFunction,
 } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
-import { sendError } from "../utils/response-utils";
 import { UnauthorizedError } from "../utils/custom-errors-utils";
 
 export interface JwtUserPayload {
@@ -46,6 +45,8 @@ export const authenticateJwt = (
 
     next();
   } catch (error) {
-    next(new UnauthorizedError("Invalid or expired token. Please login again."));
+    next(
+      new UnauthorizedError("Invalid or expired token. Please login again."),
+    );
   }
 };

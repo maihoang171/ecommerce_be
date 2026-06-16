@@ -32,12 +32,12 @@ describe("response utilities", () => {
       const mockAccessToken = "mocked-token";
       sendAuthSuccess(mockRes, mockStatusCode, mockAccessToken, mockData);
 
-      expect(mockRes.status).toHaveBeenCalledWith(mockStatusCode)
+      expect(mockRes.status).toHaveBeenCalledWith(mockStatusCode);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
         accessToken: mockAccessToken,
         data: mockData,
-      })
+      });
     });
   });
 

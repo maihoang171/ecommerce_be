@@ -64,15 +64,15 @@ describe("verifyPassword", () => {
 });
 
 describe("hashToken", () => {
-  const mockToken = "mockToken"
-  const mockHashedToken = hashToken(mockToken)
-  
-  beforeEach(()=> {
-    vi.clearAllMocks()
-  })
+  const mockToken = "mockToken";
+  const mockHashedToken = hashToken(mockToken);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it("should return hex string", () => {
-    expect(typeof mockHashedToken).toBe("string")
-    expect(mockHashedToken).toMatch(/^[a-f0-9]+$/)
-  })
-})
+    expect(typeof mockHashedToken).toBe("string");
+    expect(mockHashedToken).toMatch(/^[a-f0-9]+$/);
+  });
+});

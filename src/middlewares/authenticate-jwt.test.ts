@@ -9,10 +9,6 @@ import jwt from "jsonwebtoken";
 import type { JwtUserPayload } from "./authenticate-jwt";
 import { UnauthorizedError } from "../utils/custom-errors-utils";
 
-vi.mock("../utils/response", () => ({
-  sendError: vi.fn(),
-}));
-
 vi.mock("jsonwebtoken", () => ({
   default: {
     verify: vi.fn(),
@@ -37,13 +33,14 @@ describe("authenticateJwt", () => {
   const mockNext = vi.fn();
 
   it("should return status code 401 and message when token is missing", () => {
-    authenticateJwt(mockReq, mockRes, mockNext)
+    authenticateJwt(mockReq, mockRes, mockNext);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError))
-    
-    const errorArg = mockNext.mock.calls[0]![0]
-    expect(errorArg.message).toBe("Invalid or expired token. Please login again.")
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
 
+    const errorArg = mockNext.mock.calls[0]![0];
+    expect(errorArg.message).toBe(
+      "Invalid or expired token. Please login again.",
+    );
   });
 
   it("should return status code 401 and message when token part is empty after Bearer prefix", () => {
@@ -51,10 +48,12 @@ describe("authenticateJwt", () => {
 
     authenticateJwt(mockReq, mockRes, mockNext);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError))
-    
-    const errArg = mockNext.mock.calls[0]![0]
-    expect(errArg.message).toBe("Invalid or expired token. Please login again.")
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.message).toBe(
+      "Invalid or expired token. Please login again.",
+    );
   });
   it("should verify the token and call next when token is valid", () => {
     const mockUser = {
@@ -82,9 +81,11 @@ describe("authenticateJwt", () => {
 
     authenticateJwt(mockReq, mockRes, mockNext);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError))
-    
-    const errArg = mockNext.mock.calls[0]![0]
-    expect(errArg.message).toBe("Invalid or expired token. Please login again.")
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.message).toBe(
+      "Invalid or expired token. Please login again.",
+    );
   });
 });

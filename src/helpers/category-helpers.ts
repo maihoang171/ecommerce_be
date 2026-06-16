@@ -9,7 +9,6 @@ export const findCategoryIdsBySlug = async (slug: string) => {
       children: {
         select: { id: true },
       },
-      
     },
   });
 

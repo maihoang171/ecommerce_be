@@ -21,7 +21,10 @@ import {
   generateAndSetRefreshToken,
 } from "../../utils/token-utils";
 import jwt from "jsonwebtoken";
-import { NotFoundError, UnauthorizedError } from "../../utils/custom-errors-utils";
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from "../../utils/custom-errors-utils";
 
 vi.mock("../../services/auth-services", () => ({
   registerService: vi.fn(),
