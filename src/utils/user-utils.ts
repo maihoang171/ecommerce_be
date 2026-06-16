@@ -1,8 +1,7 @@
-import { prisma } from "../lib/prisma";
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
+import { createHash } from "crypto";
 
 // ----------------registration
-
 export const hashPassword = (password: string) => {
   const salt = randomBytes(16).toString("hex");
   const derivedKey = scryptSync(password, salt, 64).toString("hex");
@@ -21,4 +20,8 @@ export const verifyPassword = (password: string, hashedPassword: string) => {
   const derivedKeyBuffer = Buffer.from(derivedKey, "hex");
 
   return timingSafeEqual(originalDerivedKeyBuffer, derivedKeyBuffer);
+};
+
+export const hashToken = (token: string) => {
+  return createHash("sha256").update(token).digest("hex");
 };

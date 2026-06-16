@@ -1,11 +1,12 @@
 import type { User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { hashPassword, verifyPassword } from "../utils/user-utils";
+import { hashPassword, hashToken, verifyPassword } from "../utils/user-utils";
 import { addDays } from "date-fns";
+import { ConflictError, UnauthorizedError } from "../utils/custom-errors-utils";
 
-export const findUserByUserNameService = async (userName: string) => {
+export const findUserByUsernameService = async (username: string) => {
   return await prisma.user.findUnique({
-    where: { userName },
+    where: { username },
   });
 };
 
@@ -16,24 +17,21 @@ export const findUserByIdService = async (id: number) => {
 };
 
 export const registerService = async (
-  user: Pick<User, "userName" | "password">,
+  user: Pick<User, "username" | "password">,
 ) => {
-  const { userName, password } = user;
+  const { username, password } = user;
 
-  const existingUser = await findUserByUserNameService(userName);
+  const existingUser = await findUserByUsernameService(username);
+
   if (existingUser) {
-    let error = new Error(
-      "User registration failed: username already exists",
-    ) as Error & { statusCode: number };
-    error.statusCode = 409;
-    throw error;
+    throw new ConflictError("Username already exists");
   }
 
   const hashedPassword = hashPassword(password);
 
   const newUser = await prisma.user.create({
     data: {
-      userName,
+      username,
       password: hashedPassword,
     },
   });
@@ -41,22 +39,19 @@ export const registerService = async (
   return newUser;
 };
 
-export const loginService = async (userName: string, password: string) => {
-  const user = await findUserByUserNameService(userName);
+export const loginService = async (username: string, password: string) => {
+  const user = await findUserByUsernameService(username);
+
+  const invalidMsg = "Invalid username or password";
+
   if (!user) {
-    let error = new Error("User not found") as Error & { statusCode: number };
-    error.statusCode = 404;
-    throw error;
+    throw new UnauthorizedError(invalidMsg);
   }
 
   const isPasswordValid = verifyPassword(password, user.password);
 
   if (!isPasswordValid) {
-    let error = new Error("Incorrect password") as Error & {
-      statusCode: number;
-    };
-    error.statusCode = 401;
-    throw error;
+    throw new UnauthorizedError(invalidMsg);
   }
 
   return user;
@@ -68,6 +63,8 @@ export const createRefreshTokenService = async (
 ) => {
   const expiredAt = addDays(new Date(), 7);
 
+  const hashedToken = hashToken(refreshToken);
+
   await prisma.refreshToken.deleteMany({
     where: {
       userId,
@@ -77,7 +74,7 @@ export const createRefreshTokenService = async (
   return await prisma.refreshToken.create({
     data: {
       userId,
-      token: refreshToken,
+      token: hashedToken,
       expiredAt,
     },
   });
@@ -85,12 +82,14 @@ export const createRefreshTokenService = async (
 
 export const verifyRefreshTokenService = async (
   userId: number,
-  refreshToken: string,
+  incomingRefreshToken: string,
 ) => {
+  const hashedToken = hashToken(incomingRefreshToken);
+
   const refreshTokenFromDB = await prisma.refreshToken.findFirst({
     where: {
       userId,
-      token: refreshToken,
+      token: hashedToken,
     },
   });
 
@@ -107,4 +106,4 @@ export const logoutService = async (userId: number) => {
       userId,
     },
   });
-}
+};

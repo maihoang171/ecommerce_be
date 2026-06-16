@@ -1,11 +1,11 @@
 import type { User } from "@prisma/client";
 
 export const userResponseDto = (
-  user: Pick<User, "id" | "userName" | "isAdmin">,
+  user: Pick<User, "id" | "username" | "isAdmin">,
 ) => {
   return {
     id: user.id,
-    userName: user.userName,
+    username: user.username,
     isAdmin: user.isAdmin,
   };
 };

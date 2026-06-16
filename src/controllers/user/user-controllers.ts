@@ -4,7 +4,7 @@ import type {
   NextFunction,
 } from "express-serve-static-core";
 import { userResponseDto } from "./user-dto";
-import { baseUserSchema } from "../../schemas/authSchema";
+import { baseUserSchema } from "../../schemas/auth-schema";
 import {
   registerService,
   loginService,
@@ -22,6 +22,10 @@ import {
   generateAndSetRefreshToken,
 } from "../../utils/token-utils";
 import jwt from "jsonwebtoken";
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from "../../utils/custom-errors-utils";
 
 export const registerController = async (
   req: Request,
@@ -45,11 +49,12 @@ export const loginController = async (
 ) => {
   try {
     const validatedData = baseUserSchema.parse(req.body);
-    const { userName, password } = validatedData;
-    const user = await loginService(userName, password);
+
+    const { username, password } = validatedData;
+    const user = await loginService(username, password);
 
     if (!user) {
-      return sendError(res, 401, "Invalid username or password");
+      throw new UnauthorizedError("Invalid username or password");
     }
 
     const accessToken = generateAndSetAccessToken(user);
@@ -69,12 +74,12 @@ export const getMeController = async (
   try {
     const user = req.user;
     if (!user) {
-      return sendError(res, 401, "Unauthorized access. Please login again!");
+      throw new UnauthorizedError("Unauthorized access. Please login again!");
     }
 
     const userFromDB = await findUserByIdService(user.id);
     if (!userFromDB) {
-      return sendError(res, 404, "User no longer exists. Please login again!");
+      throw new NotFoundError("User no longer exists. Please login again!");
     }
 
     sendSuccess(res, 200, userResponseDto(userFromDB));
@@ -91,16 +96,22 @@ export const refreshTokenController = async (
   try {
     const oldRefreshToken = req.cookies.refreshToken;
     if (!oldRefreshToken) {
-      return sendError(
-        res,
-        401,
+      throw new UnauthorizedError(
         "Refresh token is missing. Please login again!",
       );
     }
 
-    const decoded = jwt.verify(oldRefreshToken, process.env.JWT_SECRET!) as {
-      id: number;
-    };
+    let decoded: { id: number };
+
+    try {
+      decoded = jwt.verify(oldRefreshToken, process.env.JWT_SECRET!) as {
+        id: number;
+      };
+    } catch (jwtErr) {
+      throw new UnauthorizedError(
+        "Session expired or invalid token. Please login again!",
+      );
+    }
 
     const isTokenValid = await verifyRefreshTokenService(
       decoded.id,
@@ -108,16 +119,14 @@ export const refreshTokenController = async (
     );
 
     if (!isTokenValid) {
-      return sendError(
-        res,
-        401,
+      throw new UnauthorizedError(
         "Invalid refresh token or session expired. Please login again!",
       );
     }
 
     const user = await findUserByIdService(decoded.id);
     if (!user) {
-      return sendError(res, 404, "User no longer exists. Please login again!");
+      throw new NotFoundError("User no longer exists. Please login again!");
     }
 
     const accessToken = generateAndSetAccessToken(user);

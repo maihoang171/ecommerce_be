@@ -3,7 +3,7 @@ import type { Response } from "express-serve-static-core";
 import {
   generateAndSetAccessToken,
   generateAndSetRefreshToken,
-} from "../utils/token-utils";
+} from "./token-utils";
 import jwt from "jsonwebtoken";
 import { createRefreshTokenService } from "../services/auth-services";
 import { sendError } from "./response-utils";
@@ -36,7 +36,7 @@ describe("token utilities", () => {
   describe("generateAndSetAccessToken", () => {
     const mockUser = {
       id: 1,
-      userName: "testUser",
+      username: "testUser",
       isAdmin: false,
     };
 
@@ -50,7 +50,7 @@ describe("token utilities", () => {
       expect(jwt.sign).toHaveBeenCalledWith(
         {
           id: mockUser.id,
-          userName: mockUser.userName,
+          username: mockUser.username,
           isAdmin: mockUser.isAdmin,
         },
         TEST_SECRET,

@@ -4,16 +4,20 @@ import {
   loginController,
   getMeController,
   refreshTokenController,
-  logoutController
+  logoutController,
 } from "../controllers/user/user-controllers";
-import { authenticateJwt } from "../middlewares/authenticateJwt";
+import { authenticateJwt } from "../middlewares/authenticate-jwt";
 
 const authRouter = express.Router();
 
 authRouter.post("/register", registerController);
+
 authRouter.post("/login", loginController);
+
 authRouter.get("/me", authenticateJwt, getMeController);
+
 authRouter.get("/refresh-token", refreshTokenController);
+
 authRouter.post("/logout", logoutController);
 
 export default authRouter;

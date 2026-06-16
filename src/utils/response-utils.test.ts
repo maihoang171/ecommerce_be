@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { Response } from "express-serve-static-core";
-import { sendAuthSuccess, sendError, sendSuccess } from "../utils/response-utils";
+import { sendAuthSuccess, sendError, sendSuccess } from "./response-utils";
 
 describe("response utilities", () => {
   const mockRes = {
@@ -10,7 +10,7 @@ describe("response utilities", () => {
 
   const mockData = {
     id: 1,
-    userName: "HoangPham1",
+    username: "HoangPham1",
   };
 
   describe("sendSuccess", () => {
@@ -32,12 +32,12 @@ describe("response utilities", () => {
       const mockAccessToken = "mocked-token";
       sendAuthSuccess(mockRes, mockStatusCode, mockAccessToken, mockData);
 
-      expect(mockRes.status).toHaveBeenCalledWith(mockStatusCode)
+      expect(mockRes.status).toHaveBeenCalledWith(mockStatusCode);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
         accessToken: mockAccessToken,
         data: mockData,
-      })
+      });
     });
   });
 

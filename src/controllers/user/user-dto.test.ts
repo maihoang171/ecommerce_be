@@ -5,7 +5,7 @@ describe("userResponseDTO", () => {
   it("should strip out sensitive fields and return only the expected fields", () => {
     const mockDbUser = {
       id: 1,
-      userName: "HoangPham1",
+      username: "HoangPham1",
       password: "hashedPassword123",
       isAdmin: false,
       createdAt: new Date(),
