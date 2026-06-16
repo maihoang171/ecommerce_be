@@ -1,4 +1,5 @@
 import { prisma } from "../../src/lib/prisma";
+import { findCategoryIdsBySlug } from "../helpers/category-helpers";
 
 export const findCategoryListService = async () => {
   return await prisma.category.findMany({
@@ -22,6 +23,27 @@ export const findCategoryListService = async () => {
           subTitle: true,
           imageUrl: true,
           linkUrl: true,
+        },
+      },
+    },
+  });
+};
+
+export const findProductListByCategorySlugService = async (slug: string) => {
+  const categoryIds = await findCategoryIdsBySlug(slug);
+
+  return await prisma.product.findMany({
+    where: {
+      isActive: true,
+      categoryId: { in: categoryIds },
+    },
+
+    include: {
+      images: {
+        select: {
+          id: true,
+          imageUrl: true,
+          isPrimary: true,
         },
       },
     },

@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const baseUserSchema = z.object({
-  userName: z
+  username: z
     .string()
     .trim()
     .min(3, "User name must have at least 3 characters")

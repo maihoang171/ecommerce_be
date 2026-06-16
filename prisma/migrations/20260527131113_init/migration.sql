@@ -19,7 +19,7 @@ CREATE TYPE "InventoryLogType" AS ENUM ('IMPORT', 'EXPORT', 'RETURN', 'DAMAGE');
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
-    "userName" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
@@ -182,7 +182,7 @@ CREATE TABLE "InventoryLog" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_userName_key" ON "User"("userName");
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE INDEX "Order_userId_createdAt_idx" ON "Order"("userId", "createdAt");

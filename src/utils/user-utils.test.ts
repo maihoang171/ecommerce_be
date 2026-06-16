@@ -1,5 +1,5 @@
 import { it, expect, describe, vi } from "vitest";
-import { hashPassword, verifyPassword } from "./user-utils";
+import { hashPassword, hashToken, verifyPassword } from "./user-utils";
 import { beforeEach } from "node:test";
 
 describe("hashPassword", () => {
@@ -62,3 +62,17 @@ describe("verifyPassword", () => {
     expect(result).toBe(false);
   });
 });
+
+describe("hashToken", () => {
+  const mockToken = "mockToken"
+  const mockHashedToken = hashToken(mockToken)
+  
+  beforeEach(()=> {
+    vi.clearAllMocks()
+  })
+
+  it("should return hex string", () => {
+    expect(typeof mockHashedToken).toBe("string")
+    expect(mockHashedToken).toMatch(/^[a-f0-9]+$/)
+  })
+})

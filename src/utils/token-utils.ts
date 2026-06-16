@@ -5,12 +5,12 @@ import { sendError } from "./response-utils";
 
 export const generateAndSetAccessToken = (user: {
   id: number;
-  userName: string;
+  username: string;
   isAdmin: boolean;
 }) => {
   const payload = {
     id: user.id,
-    userName: user.userName,
+    username: user.username,
     isAdmin: user.isAdmin,
   };
 

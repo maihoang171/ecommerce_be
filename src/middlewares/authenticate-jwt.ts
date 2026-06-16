@@ -5,10 +5,11 @@ import type {
 } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
 import { sendError } from "../utils/response-utils";
+import { UnauthorizedError } from "../utils/custom-errors-utils";
 
 export interface JwtUserPayload {
   id: number;
-  userName: string;
+  username: string;
   isAdmin: boolean;
 }
 
@@ -31,19 +32,20 @@ export const authenticateJwt = (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return sendError(res, 401, "Token is missing or invalid format.");
+      throw new UnauthorizedError("Token is missing or invalid format.");
     }
 
     const accessToken = authHeader.split(" ")[1];
 
     if (!accessToken) {
-      return sendError(res, 401, "Token is missing or invalid format.");
+      throw new UnauthorizedError("Token is missing or invalid format.");
     }
 
     const decoded = jwt.verify(accessToken, jwtSecret);
     req.user = decoded as JwtUserPayload;
+
     next();
   } catch (error) {
-    return sendError(res, 401, "Invalid token.");
+    next(new UnauthorizedError("Invalid or expired token. Please login again."));
   }
 };

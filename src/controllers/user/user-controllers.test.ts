@@ -1,5 +1,5 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
-import { baseUserSchema } from "../../schemas/authSchema";
+import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
+import { baseUserSchema } from "../../schemas/auth-schema";
 import {
   registerService,
   loginService,
@@ -14,17 +14,14 @@ import {
   refreshTokenController,
   logoutController,
 } from "./user-controllers";
-import {
-  sendAuthSuccess,
-  sendError,
-  sendSuccess,
-} from "../../utils/response-utils";
+import { sendAuthSuccess, sendSuccess } from "../../utils/response-utils";
 import { userResponseDto } from "./user-dto";
 import {
   generateAndSetAccessToken,
   generateAndSetRefreshToken,
 } from "../../utils/token-utils";
 import jwt from "jsonwebtoken";
+import { NotFoundError, UnauthorizedError } from "../../utils/custom-errors-utils";
 
 vi.mock("../../services/auth-services", () => ({
   registerService: vi.fn(),
@@ -46,7 +43,6 @@ vi.mock("../../controllers/user/user-dto", () => ({
 
 vi.mock("../../utils/response-utils", () => ({
   sendSuccess: vi.fn(),
-  sendError: vi.fn(),
   sendAuthSuccess: vi.fn(),
 }));
 
@@ -63,7 +59,7 @@ vi.mock("jsonwebtoken", () => ({
 
 describe("registerController", () => {
   const mockValidUserData = {
-    userName: "HoangPham1",
+    username: "HoangPham1",
     password: "HoangPham123",
   };
 
@@ -85,12 +81,14 @@ describe("registerController", () => {
     const mockNext = vi.fn();
 
     vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidUserData);
+
     vi.mocked(registerService).mockResolvedValue(mockNewUser);
 
     await registerController(mockReq as any, mockRes as any, mockNext);
 
     expect(baseUserSchema.parse).toHaveBeenCalledWith(mockValidUserData);
     expect(registerService).toHaveBeenCalledWith(mockValidUserData);
+
     expect(sendSuccess).toHaveBeenCalledWith(
       mockRes,
       201,
@@ -138,7 +136,7 @@ describe("registerController", () => {
 
 describe("loginController", () => {
   const mockValidInput = {
-    userName: "HoangPham1",
+    username: "HoangPham1",
     password: "HoangPham123",
   };
 
@@ -181,7 +179,7 @@ describe("loginController", () => {
     expect(mockNext).toHaveBeenCalledWith(mockServiceError);
   });
 
-  it("should return status code 401 and error message on invalid username or password", async () => {
+  it("should pass error to next() on invalid username or password", async () => {
     const mockReq = {
       body: mockValidInput,
     };
@@ -194,11 +192,10 @@ describe("loginController", () => {
 
     await loginController(mockReq as any, mockRes as any, mockNext);
 
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      401,
-      "Invalid username or password",
-    );
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.message).toBe("Invalid username or password");
   });
 
   it("should generate tokens, set them in cookie, return status code 200 and user data on successfully login", async () => {
@@ -210,7 +207,7 @@ describe("loginController", () => {
 
     const mockUser = {
       id: 1,
-      userName: "HoangPham1",
+      username: "HoangPham1",
       isAdmin: false,
     };
 
@@ -237,7 +234,7 @@ describe("loginController", () => {
 describe("getMeController", () => {
   const mockUser = {
     id: 1,
-    userName: "HoangPham1",
+    username: "HoangPham1",
     isAdmin: false,
   };
 
@@ -245,7 +242,7 @@ describe("getMeController", () => {
     vi.clearAllMocks();
   });
 
-  it("should return error on unauthorized access", async () => {
+  it("should pass error to next() on unauthorized access", async () => {
     const mockReq = {
       user: null,
     };
@@ -253,11 +250,11 @@ describe("getMeController", () => {
     const mockNext = vi.fn();
 
     await getMeController(mockReq as any, mockRes as any, mockNext);
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      401,
-      "Unauthorized access. Please login again!",
-    );
+
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.message).toBe("Unauthorized access. Please login again!");
   });
 
   it("should call next on service error", async () => {
@@ -275,7 +272,7 @@ describe("getMeController", () => {
     expect(mockNext).toHaveBeenCalledWith(mockServiceError);
   });
 
-  it("should return status code 404 and error message on user no longer exists", async () => {
+  it("should pass error to next() on user no longer exists", async () => {
     const mockReq = {
       user: mockUser,
     };
@@ -286,11 +283,10 @@ describe("getMeController", () => {
 
     await getMeController(mockReq as any, mockRes as any, mockNext);
 
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      404,
-      "User no longer exists. Please login again!",
-    );
+    expect(mockNext).toHaveBeenCalledWith(expect.any(NotFoundError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.message).toBe("User no longer exists. Please login again!");
   });
 
   it("should return status code 200 and user data on successfully", async () => {
@@ -324,20 +320,43 @@ describe("refreshTokenController", () => {
 
   const mockUser = {
     id: 1,
-    userName: "HoangPham1",
+    username: "HoangPham1",
     isAdmin: false,
   };
 
-  it("should return status code 401 and message on missing refresh token", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should pass error to next() on missing refresh token", () => {
     refreshTokenController(mockReq, mockRes, mockNext);
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      401,
+
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.statusCode).toBe(401);
+    expect(errArg.message).toBe(
       "Refresh token is missing. Please login again!",
     );
   });
 
-  it("should return status code 401 and message on invalid refresh token or session expired", async () => {
+  it("should pass error to next() on jwt error", () => {
+    mockReq.cookies.refreshToken = "validToken";
+
+    const mockErr = new UnauthorizedError(
+      "Session expired or invalid token. Please login again!",
+    );
+
+    vi.mocked(jwt.verify).mockImplementation(() => {
+      throw mockErr;
+    });
+
+    refreshTokenController(mockReq, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(mockErr);
+  });
+
+  it("should pass error to next() on invalid refresh token or session expired", async () => {
     mockReq.cookies.refreshToken = "expired-or-revoked-token";
 
     vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
@@ -346,25 +365,28 @@ describe("refreshTokenController", () => {
 
     await refreshTokenController(mockReq, mockRes, mockNext);
 
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      401,
+    expect(mockNext).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.statusCode).toBe(401);
+    expect(errArg.message).toBe(
       "Invalid refresh token or session expired. Please login again!",
     );
   });
 
-  it("should return status code 404 and message on user no longer exists", async () => {
+  it("should pass error to next() on user no longer exists", async () => {
     mockReq.cookies.refreshToken = "valid-token";
     vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
     vi.mocked(findUserByIdService).mockResolvedValue(null);
 
     await refreshTokenController(mockReq, mockRes, mockNext);
-    expect(sendError).toHaveBeenCalledWith(
-      mockRes,
-      404,
-      "User no longer exists. Please login again!",
-    );
+
+    expect(mockNext).toHaveBeenCalledWith(expect.any(NotFoundError));
+
+    const errArg = mockNext.mock.calls[0]![0];
+    expect(errArg.statusCode).toBe(404);
+    expect(errArg.message).toBe("User no longer exists. Please login again!");
   });
 
   it("should return status code 200 and user data, generate tokens, set them in cookie on successfully", async () => {
@@ -375,11 +397,7 @@ describe("refreshTokenController", () => {
 
     await refreshTokenController(mockReq, mockRes, mockNext);
 
-    const mockUserResponse = {
-      ...mockUser,
-    };
-
-    const accessToken = await generateAndSetAccessToken(mockUser);
+    const accessToken = generateAndSetAccessToken(mockUser);
     expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUser);
     expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
     expect(sendAuthSuccess).toHaveBeenCalledWith(
@@ -427,15 +445,17 @@ describe("logoutController", () => {
     const mockJwtError = new Error("Service error");
     vi.mocked(jwt.verify).mockImplementation(() => {
       throw mockJwtError;
-    })
+    });
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { })
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     await logoutController(mockReq, mockRes, mockNext);
 
-    expect(consoleSpy).toHaveBeenCalledWith("Error verifying refresh token during fallback logout:",
-      mockJwtError);
-  })
-  
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error verifying refresh token during fallback logout:",
+      mockJwtError,
+    );
+  });
+
   it("should clear refresh token cookie and call sendSuccess on success", async () => {
     const mockReq = {
       user: {

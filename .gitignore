@@ -5,4 +5,4 @@ coverage/
 /generated/prisma
 .DS_Store
 
-prisma/categorySeed.ts
+prisma/seed.ts

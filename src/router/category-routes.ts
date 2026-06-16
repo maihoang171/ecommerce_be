@@ -1,8 +1,18 @@
 import express from "express";
-import { findCategoryListController } from "../controllers/category/category-controllers";
+import {
+  findCategoryListController,
+  findProductListByCategorySlugController,
+} from "../controllers/category/category-controllers";
 
 const categoryRouter = express.Router();
 
 categoryRouter.get("", findCategoryListController);
+
+categoryRouter.get(
+  "/:parentSlug/:childSlug",
+  findProductListByCategorySlugController,
+);
+
+categoryRouter.get("/:parentSlug", findProductListByCategorySlugController);
 
 export default categoryRouter;

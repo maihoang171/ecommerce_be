@@ -6,7 +6,7 @@ import {
   refreshTokenController,
   logoutController
 } from "../controllers/user/user-controllers";
-import { authenticateJwt } from "../middlewares/authenticateJwt";
+import { authenticateJwt } from "../middlewares/authenticate-jwt";
 
 const authRouter = express.Router();
 
