@@ -38,6 +38,7 @@ model RefreshToken{
   createdAt DateTime @default(now())
   expiredAt DateTime 
 }
+
 model UserAddress {
   id Int @id @default(autoincrement())
   user User @relation(fields:[userId], references:[id], onDelete: Cascade)
@@ -139,8 +140,9 @@ model Category {
   parentId Int?
   parent Category? @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryToCategory")
-  campaigns Campaign[]
   
+  campaigns Campaign[]
+
   @@index([parentId])
 }
 
@@ -150,8 +152,11 @@ model Campaign {
   subTitle String
   imageUrl String 
   linkUrl String
-  categoryId Int
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  categoryId Int?
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  products Product[]
 }
 
 // -----Product--------------
@@ -169,6 +174,7 @@ model Product{
   images ProductImage[]
   variants ProductVariant[]
 
+  campaigns Campaign[]
   @@index([categoryId, isActive, price])
 }
 
