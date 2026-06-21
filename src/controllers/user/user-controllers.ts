@@ -14,7 +14,6 @@ import {
 } from "../../services/auth-services";
 import {
   sendAuthSuccess,
-  sendError,
   sendSuccess,
 } from "../../utils/response-utils";
 import {
