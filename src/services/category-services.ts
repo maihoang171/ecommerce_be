@@ -42,10 +42,12 @@ export const findProductListByCategorySlugService = async (slug: string) => {
       images: {
         select: {
           id: true,
+          color: true,
           imageUrl: true,
           isPrimary: true,
         },
       },
+      variants: true
     },
   });
 };
