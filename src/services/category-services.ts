@@ -47,7 +47,7 @@ export const findProductListByCategorySlugService = async (slug: string) => {
           isPrimary: true,
         },
       },
-      variants: true
+      variants: true,
     },
   });
 };
