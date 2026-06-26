@@ -1,8 +1,6 @@
 import { describe, vi, expect, it } from "vitest";
-import {
-  findCategoryListService,
-  findProductListByCategorySlugService,
-} from "./category-services";
+import { findCategoryListService } from "./category-services";
+import { findProductListByCategorySlugService } from "./product-services";
 import { prisma } from "../lib/prisma";
 import { findCategoryIdsBySlug } from "../helpers/category-helpers";
 

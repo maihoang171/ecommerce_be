@@ -25,6 +25,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../utils/custom-errors-utils";
+import { mockValidUserDataInput, mockUserData } from "../../tests/mockData";
 
 vi.mock("../../services/auth-services", () => ({
   registerService: vi.fn(),
@@ -61,14 +62,9 @@ vi.mock("jsonwebtoken", () => ({
 }));
 
 describe("registerController", () => {
-  const mockValidUserData = {
-    username: "HoangPham1",
-    password: "HoangPham123",
-  };
-
   const mockNewUser = {
     id: 1,
-    ...mockValidUserData,
+    ...mockValidUserDataInput,
     isAdmin: false,
   };
 
@@ -78,19 +74,21 @@ describe("registerController", () => {
 
   it("should return status code 201, message and user data on success", async () => {
     const mockReq = {
-      body: mockValidUserData,
+      body: mockValidUserDataInput,
     };
     const mockRes = {};
     const mockNext = vi.fn();
 
-    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidUserData);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(
+      mockValidUserDataInput,
+    );
 
     vi.mocked(registerService).mockResolvedValue(mockNewUser);
 
     await registerController(mockReq as any, mockRes as any, mockNext);
 
-    expect(baseUserSchema.parse).toHaveBeenCalledWith(mockValidUserData);
-    expect(registerService).toHaveBeenCalledWith(mockValidUserData);
+    expect(baseUserSchema.parse).toHaveBeenCalledWith(mockValidUserDataInput);
+    expect(registerService).toHaveBeenCalledWith(mockValidUserDataInput);
 
     expect(sendSuccess).toHaveBeenCalledWith(
       mockRes,
@@ -101,7 +99,7 @@ describe("registerController", () => {
 
   it("should call next on zod validation error", async () => {
     const mockReq = {
-      body: mockValidUserData,
+      body: mockValidUserDataInput,
     };
     const mockRes = {};
     const mockNext = vi.fn();
@@ -119,14 +117,16 @@ describe("registerController", () => {
 
   it("should call next on service error", async () => {
     const mockReq = {
-      body: mockValidUserData,
+      body: mockValidUserDataInput,
     };
     const mockRes = {};
     const mockNext = vi.fn();
 
     const mockServiceError = new Error("Service error");
 
-    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidUserData);
+    vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(
+      mockValidUserDataInput,
+    );
     vi.mocked(registerService).mockImplementation(() => {
       throw mockServiceError;
     });
@@ -208,28 +208,25 @@ describe("loginController", () => {
     const mockRes = {};
     const mockNext = vi.fn();
 
-    const mockUser = {
-      id: 1,
-      username: "HoangPham1",
-      isAdmin: false,
-    };
-
     vi.spyOn(baseUserSchema as any, "parse").mockReturnValue(mockValidInput);
 
-    vi.mocked(loginService).mockResolvedValue(mockUser);
+    vi.mocked(loginService).mockResolvedValue(mockUserData);
 
     await loginController(mockReq as any, mockRes as any, mockNext);
 
-    const accessToken = await generateAndSetAccessToken(mockUser);
+    const accessToken = await generateAndSetAccessToken(mockUserData);
 
-    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUser);
-    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUserData);
+    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(
+      mockRes,
+      mockUserData,
+    );
 
     expect(sendAuthSuccess).toHaveBeenCalledWith(
       mockRes,
       200,
       accessToken,
-      userResponseDto(mockUser),
+      userResponseDto(mockUserData),
     );
   });
 });
@@ -321,12 +318,6 @@ describe("refreshTokenController", () => {
   const mockRes = {} as any;
   const mockNext = vi.fn();
 
-  const mockUser = {
-    id: 1,
-    username: "HoangPham1",
-    isAdmin: false,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -362,7 +353,7 @@ describe("refreshTokenController", () => {
   it("should pass error to next() on invalid refresh token or session expired", async () => {
     mockReq.cookies.refreshToken = "expired-or-revoked-token";
 
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(jwt.verify).mockReturnValue(mockUserData as any);
 
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(false);
 
@@ -379,7 +370,7 @@ describe("refreshTokenController", () => {
 
   it("should pass error to next() on user no longer exists", async () => {
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(jwt.verify).mockReturnValue(mockUserData as any);
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
     vi.mocked(findUserByIdService).mockResolvedValue(null);
 
@@ -394,15 +385,18 @@ describe("refreshTokenController", () => {
 
   it("should return status code 200 and user data, generate tokens, set them in cookie on successfully", async () => {
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(jwt.verify).mockReturnValue(mockUserData as any);
     vi.mocked(verifyRefreshTokenService).mockResolvedValue(true);
-    vi.mocked(findUserByIdService).mockResolvedValue(mockUser);
+    vi.mocked(findUserByIdService).mockResolvedValue(mockUserData);
 
     await refreshTokenController(mockReq, mockRes, mockNext);
 
-    const accessToken = generateAndSetAccessToken(mockUser);
-    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUser);
-    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(mockRes, mockUser);
+    const accessToken = generateAndSetAccessToken(mockUserData);
+    expect(generateAndSetAccessToken).toHaveBeenCalledWith(mockUserData);
+    expect(generateAndSetRefreshToken).toHaveBeenCalledWith(
+      mockRes,
+      mockUserData,
+    );
     expect(sendAuthSuccess).toHaveBeenCalledWith(
       mockRes,
       200,
@@ -415,7 +409,7 @@ describe("refreshTokenController", () => {
     const mockServiceError = new Error("Service error");
 
     mockReq.cookies.refreshToken = "valid-token";
-    vi.mocked(jwt.verify).mockReturnValue(mockUser as any);
+    vi.mocked(jwt.verify).mockReturnValue(mockUserData as any);
     vi.mocked(verifyRefreshTokenService).mockRejectedValue(mockServiceError);
 
     await refreshTokenController(mockReq, mockRes, mockNext);

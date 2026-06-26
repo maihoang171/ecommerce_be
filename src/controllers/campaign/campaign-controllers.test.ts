@@ -2,6 +2,7 @@ import { beforeEach, describe, it, vi, expect } from "vitest";
 import { findCampaignListService } from "../../services/campaign-services";
 import { findCampaignListController } from "./campaign-controllers";
 import { sendSuccess } from "../../utils/response-utils";
+import { mockCategoryList } from "../../tests/mockData";
 
 vi.mock("../../utils/response-utils", () => ({
   sendSuccess: vi.fn(),
@@ -31,13 +32,7 @@ describe("findCampaignListController", () => {
   });
 
   it("should sendSuccess with status code 200 and campaign list data on success", async () => {
-    const mockCampaignList = {
-      id: 1,
-      title: "mockTitle",
-      subTitle: "mockSubtitle",
-      imageUrl: "mockImageUrl",
-      linkUrl: "mockLinkUrl",
-    };
+    const mockCampaignList = mockCategoryList[0]?.campaigns;
 
     vi.mocked(findCampaignListService).mockResolvedValue(mockCampaignList);
 
