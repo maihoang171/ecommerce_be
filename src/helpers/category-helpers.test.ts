@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { prisma } from "../lib/prisma";
 import { findCategoryIdsBySlug } from "./category-helpers";
 import { NotFoundError } from "../utils/custom-errors-utils";
+import { mockCategoryList } from "../tests/mockData";
 
 vi.mock("../lib/prisma", () => ({
   prisma: {
@@ -16,7 +17,7 @@ describe("findCategoryIdsBySlug", () => {
     vi.clearAllMocks();
   });
 
-  const mockSlug = "mockSlug";
+  const mockSlug = "women";
 
   it("should throw NotFoundError on category not found", async () => {
     const mockCategory = null;
@@ -36,18 +37,7 @@ describe("findCategoryIdsBySlug", () => {
   });
 
   it("should return category id and proper children ids", async () => {
-    const mockCategory = {
-      id: 1,
-      slug: mockSlug,
-      children: [
-        {
-          id: 2,
-        },
-        {
-          id: 3,
-        },
-      ],
-    };
+    const mockCategory = mockCategoryList[0] as any;
     vi.mocked(prisma.category.findFirst).mockResolvedValue(mockCategory);
 
     const result = await findCategoryIdsBySlug(mockSlug);
@@ -56,6 +46,7 @@ describe("findCategoryIdsBySlug", () => {
       mockCategory.id,
       mockCategory.children[0]?.id,
       mockCategory.children[1]?.id,
+      mockCategory.children[2]?.id,
     ]);
   });
 });

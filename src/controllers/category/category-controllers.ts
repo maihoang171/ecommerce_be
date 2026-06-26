@@ -3,10 +3,8 @@ import type {
   Request,
   NextFunction,
 } from "express-serve-static-core";
-import {
-  findCategoryListService,
-  findProductListByCategorySlugService,
-} from "../../services/category-services";
+import { findCategoryListService } from "../../services/category-services";
+import { findProductListByCategorySlugService } from "../../services/product-services";
 import { sendSuccess } from "../../utils/response-utils";
 import { BadRequestError } from "../../utils/custom-errors-utils";
 
