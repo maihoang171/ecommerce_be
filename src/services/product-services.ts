@@ -1,25 +1,14 @@
 import { prisma } from "../../src/lib/prisma";
-import { findCategoryIdsBySlug } from "../helpers/category-helpers";
 
-export const findProductListByCategorySlugService = async (slug: string) => {
-  const categoryIds = await findCategoryIdsBySlug(slug);
-
-  return await prisma.product.findMany({
-    where: {
-      isActive: true,
-      categoryId: { in: categoryIds },
-    },
-
-    include: {
-      images: {
-        select: {
-          id: true,
-          color: true,
-          imageUrl: true,
-          isPrimary: true,
-        },
-      },
+export const findProductService = async (productId: number, categoryId: number) => {
+  return await prisma.product.findFirst({
+    where: { 
+      id: productId,
+      categoryId
+     },
+     include: {
+      images: true,
       variants: true,
-    },
+     }
   });
 };

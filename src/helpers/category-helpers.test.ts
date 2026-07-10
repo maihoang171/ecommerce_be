@@ -2,7 +2,7 @@ import { beforeEach } from "node:test";
 import { describe, it, expect, vi } from "vitest";
 import { prisma } from "../lib/prisma";
 import { findCategoryIdsBySlug } from "./category-helpers";
-import { NotFoundError } from "../utils/custom-errors-utils";
+import { NotFoundError } from "../errors/custom-errors";
 import { mockCategoryList } from "../tests/mockData";
 
 vi.mock("../lib/prisma", () => ({

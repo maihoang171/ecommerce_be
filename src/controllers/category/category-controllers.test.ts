@@ -1,12 +1,11 @@
 import { describe, vi, expect, it, beforeEach } from "vitest";
-import { findCategoryListService } from "../../services/category-services";
-import { findProductListByCategorySlugService } from "../../services/product-services";
+import { findCategoryListService, findProductListByCategorySlugService } from "../../services/category-services";
 import {
   findCategoryListController,
   findProductListByCategorySlugController,
 } from "./category-controllers";
 import { sendSuccess } from "../../utils/response-utils";
-import { BadRequestError } from "../../utils/custom-errors-utils";
+import { BadRequestError } from "../../errors/custom-errors";
 import {
   mockCategoryListResponse,
   mockProductListResponse,
@@ -14,9 +13,6 @@ import {
 
 vi.mock("../../services/category-services.ts", () => ({
   findCategoryListService: vi.fn(),
-}));
-
-vi.mock("../../services/product-services.ts", () => ({
   findProductListByCategorySlugService: vi.fn(),
 }));
 

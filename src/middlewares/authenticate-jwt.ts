@@ -4,7 +4,7 @@ import type {
   NextFunction,
 } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
-import { UnauthorizedError } from "../utils/custom-errors-utils";
+import { UnauthorizedError } from "../errors/custom-errors";
 
 export interface JwtUserPayload {
   id: number;

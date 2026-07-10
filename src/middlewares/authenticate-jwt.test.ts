@@ -7,7 +7,7 @@ import type {
 import { authenticateJwt } from "./authenticate-jwt";
 import jwt from "jsonwebtoken";
 import type { JwtUserPayload } from "./authenticate-jwt";
-import { UnauthorizedError } from "../utils/custom-errors-utils";
+import { UnauthorizedError } from "../errors/custom-errors";
 
 vi.mock("jsonwebtoken", () => ({
   default: {

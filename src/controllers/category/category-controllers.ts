@@ -3,10 +3,12 @@ import type {
   Request,
   NextFunction,
 } from "express-serve-static-core";
-import { findCategoryListService } from "../../services/category-services";
-import { findProductListByCategorySlugService } from "../../services/product-services";
+import {
+  findCategoryListService,
+  findProductListByCategorySlugService,
+} from "../../services/category-services";
 import { sendSuccess } from "../../utils/response-utils";
-import { BadRequestError } from "../../utils/custom-errors-utils";
+import { BadRequestError } from "../../errors/custom-errors";
 
 export const findCategoryListController = async (
   req: Request,
@@ -31,7 +33,7 @@ export const findProductListByCategorySlugController = async (
     const { parentSlug, childSlug } = req.params;
 
     const targetSlug = childSlug || parentSlug;
-
+    
     if (!targetSlug) {
       throw new BadRequestError("Missing category slug");
     }
@@ -39,7 +41,7 @@ export const findProductListByCategorySlugController = async (
     const productList = await findProductListByCategorySlugService(
       targetSlug as string,
     );
-
+    console.log(productList)
     sendSuccess(res, 200, productList);
   } catch (error) {
     next(error);

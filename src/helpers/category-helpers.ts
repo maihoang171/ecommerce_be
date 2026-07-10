@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "../utils/custom-errors-utils";
+import { NotFoundError } from "../errors/custom-errors";
 
 export const findCategoryIdsBySlug = async (slug: string) => {
   const category = await prisma.category.findFirst({

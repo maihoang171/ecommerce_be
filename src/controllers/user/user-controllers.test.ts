@@ -24,7 +24,7 @@ import jwt from "jsonwebtoken";
 import {
   NotFoundError,
   UnauthorizedError,
-} from "../../utils/custom-errors-utils";
+} from "../../errors/custom-errors";
 import { mockValidUserDataInput, mockUserData } from "../../tests/mockData";
 
 vi.mock("../../services/auth-services", () => ({
