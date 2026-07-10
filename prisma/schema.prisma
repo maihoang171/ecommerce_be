@@ -157,7 +157,7 @@ model Category {
   children Category[] @relation("CategoryToCategory")
   
   campaigns Campaign[]
-  type CategoryType
+  type CategoryType?
 
   @@index([parentId])
 
