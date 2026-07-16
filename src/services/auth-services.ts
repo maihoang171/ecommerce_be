@@ -2,7 +2,7 @@ import type { User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { hashPassword, hashToken, verifyPassword } from "../utils/user-utils";
 import { addDays } from "date-fns";
-import { ConflictError, UnauthorizedError } from "../utils/custom-errors-utils";
+import { ConflictError, UnauthorizedError } from "../errors/custom-errors";
 
 export const findUserByUsernameService = async (username: string) => {
   return await prisma.user.findUnique({

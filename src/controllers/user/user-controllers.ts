@@ -24,7 +24,7 @@ import jwt from "jsonwebtoken";
 import {
   NotFoundError,
   UnauthorizedError,
-} from "../../utils/custom-errors-utils";
+} from "../../errors/custom-errors";
 
 export const registerController = async (
   req: Request,

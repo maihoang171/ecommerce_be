@@ -65,7 +65,7 @@ model Order {
   id String @id @default(uuid())
   user User @relation(fields: [userId], references: [id])
   userId Int 
-  totalPrice Decimal
+  totalPrice Decimal @db.Decimal(10,2)
   status OrderStatus
   paymentMethod String
   note String?
@@ -92,8 +92,8 @@ model OrderItem {
   productVariantId Int? 
   
   productName String
-  variantColor ProductColor
-  variantSize ProductSize
+  variantColor String
+  variantSize String
   sku String
 
   quantity Int
@@ -141,6 +141,11 @@ model Payment {
 
 
 // ------Category--------------------
+enum CategoryType {
+  TOP
+  BOTTOM
+}
+
 model Category {
   id Int @id @default(autoincrement())
   name String @unique
@@ -152,8 +157,10 @@ model Category {
   children Category[] @relation("CategoryToCategory")
   
   campaigns Campaign[]
+  type CategoryType?
 
   @@index([parentId])
+
 }
 
 model Campaign {
@@ -195,38 +202,18 @@ model ProductImage {
   imageUrl String
   isPrimary Boolean @default(false)
 
-  color ProductColor
+  color String
   variants ProductVariant[]
 
   @@index([productId])
-}
-
-enum ProductSize {
-  S
-  M
-  L
-  XL
-  XXL
-}
-
-enum ProductColor {
-  MIDNIGHT_BLUE
-  CRIMSON_RED
-  VINTAGE_WASH
-  CHARCOAL
-  CLASSIC_WHITE
-  CLASSIC_RED 
-  CLASSIC_BLACK
-  CLASSIC_YELLOW
-  CLASSIC_ORANGE
 }
 
 model ProductVariant {
   id Int @id @default(autoincrement())
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int
-  size ProductSize
-  color ProductColor
+  size String
+  color String
 
   isActive Boolean @default(true)
 

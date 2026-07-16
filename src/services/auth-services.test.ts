@@ -9,7 +9,7 @@ import {
   verifyRefreshTokenService,
 } from "./auth-services";
 import { prisma } from "../lib/prisma";
-import { ConflictError, UnauthorizedError } from "../utils/custom-errors-utils";
+import { ConflictError, UnauthorizedError } from "../errors/custom-errors";
 import { hashPassword, hashToken, verifyPassword } from "../utils/user-utils";
 import { mockValidUserDataInput, mockUserData } from "../tests/mockData";
 import { addDays } from "date-fns";
