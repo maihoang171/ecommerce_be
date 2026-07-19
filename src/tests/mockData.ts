@@ -1,25 +1,25 @@
 export const mockCategoryList = [
   {
-    id: "1",
+    id: 1,
     parentId: null,
     name: "WOMEN",
     slug: "women",
     imageUrl: "/assets/categories/women-main.jpg",
     children: [
       {
-        id: "101",
+        id: 101,
         name: "Dresses",
         slug: "dresses",
         imageUrl: "/assets/categories/dresses.jpg",
       },
       {
-        id: "102",
+        id: 102,
         name: "Tops",
         slug: "tops",
         imageUrl: "/assets/categories/tops.jpg",
       },
       {
-        id: "103",
+        id: 103,
         name: "Bottoms",
         slug: "bottoms",
         imageUrl: "/assets/categories/bottoms.jpg",
@@ -27,14 +27,14 @@ export const mockCategoryList = [
     ],
     campaigns: [
       {
-        id: "camp-1",
+        id: 1,
         title: "Summer Lookbook",
         subTitle: "Breezy styles for the heat",
         linkUrl: "/campaigns/summer",
         imageUrl: "/assets/campaigns/summer-banner.jpg",
       },
       {
-        id: "camp-2",
+        id: 2,
         title: "Clearance Sale",
         subTitle: "Up to 50% off",
         linkUrl: "/campaigns/clearance",
@@ -43,26 +43,26 @@ export const mockCategoryList = [
     ],
   },
   {
-    id: "2",
+    id: 2,
     parentId: null,
     name: "MEN",
     slug: "men",
     imageUrl: "/assets/categories/men-main.jpg",
     children: [
       {
-        id: "201",
+        id: 201,
         name: "Shirts",
         slug: "shirts",
         imageUrl: "/assets/categories/shirts.jpg",
       },
       {
-        id: "202",
+        id: 202,
         name: "Pants",
         slug: "pants",
         imageUrl: "/assets/categories/pants.jpg",
       },
       {
-        id: "203",
+        id: 203,
         name: "Outerwear",
         slug: "outerwear",
         imageUrl: "/assets/categories/outerwear.jpg",
@@ -70,7 +70,7 @@ export const mockCategoryList = [
     ],
     campaigns: [
       {
-        id: "camp-3",
+        id: 3,
         title: "New Arrivals",
         subTitle: "Fresh fits for the season",
         linkUrl: "/campaigns/new-arrivals",
@@ -79,48 +79,48 @@ export const mockCategoryList = [
     ],
   },
   {
-    id: "3",
+    id: 3,
     parentId: null,
     name: "ACCESSORIES",
     slug: "accessories",
     imageUrl: "/assets/categories/accessories-main.jpg",
     children: [
       {
-        id: "301",
+        id: 301,
         name: "Bags",
         slug: "bags",
         imageUrl: "/assets/categories/bags.jpg",
       },
       {
-        id: "302",
+        id: 302,
         name: "Jewelry",
         slug: "jewelry",
         imageUrl: "/assets/categories/jewelry.jpg",
       },
     ],
-    campaigns: [], // Good for testing empty states!
+    campaigns: [],
   },
 ];
 
 export const mockProductList = [
   {
-    id: "prod-1",
+    id: 1,
     name: "Summer Floral Midi Dress",
     price: 89.99,
     discountPrice: 65.0,
     discountStartAt: "2026-06-01T00:00:00Z",
     discountEndAt: "2026-06-30T23:59:59Z",
     description: "Light, breezy, and perfect for the summer heat.",
-    categoryId: "101",
+    categoryId: 101,
     images: [
       {
-        id: "img-1-a",
+        id: 1,
         color: "Red",
         imageUrl: "/assets/products/floral-dress-red.jpg",
         isPrimary: true,
       },
       {
-        id: "img-1-b",
+        id: 2,
         color: "Blue",
         imageUrl: "/assets/products/floral-dress-blue.jpg",
         isPrimary: false,
@@ -128,35 +128,35 @@ export const mockProductList = [
     ],
     variants: [
       {
-        id: "var-1-sm-red",
+        id: 1,
         size: "S",
         color: "Red",
-        stockQuantity: 15,
+        stockQuantity: 1,
         sku: "DRS-FLR-RED-S",
       },
       {
-        id: "var-1-md-red",
+        id: 2,
         size: "M",
         color: "Red",
         stockQuantity: 5,
         sku: "DRS-FLR-RED-M",
       },
       {
-        id: "var-1-lg-red",
+        id: 3,
         size: "L",
         color: "Red",
         stockQuantity: 2,
         sku: "DRS-FLR-RED-L",
       },
       {
-        id: "var-1-sm-blu",
+        id: 4,
         size: "S",
         color: "Blue",
         stockQuantity: 10,
         sku: "DRS-FLR-BLU-S",
       },
       {
-        id: "var-1-md-blu",
+        id: 5,
         size: "M",
         color: "Blue",
         stockQuantity: 0,
@@ -165,14 +165,14 @@ export const mockProductList = [
     ],
   },
   {
-    id: "prod-2",
+    id: 2,
     name: "Evening Slip Dress",
     price: 120.0,
     description: "Elegant silk slip dress for formal occasions.",
-    categoryId: "101",
+    categoryId: 101,
     images: [
       {
-        id: "img-2-a",
+        id: 3,
         color: "Black",
         imageUrl: "/assets/products/slip-dress-black.jpg",
         isPrimary: true,
@@ -180,14 +180,14 @@ export const mockProductList = [
     ],
     variants: [
       {
-        id: "var-2-sm-blk",
+        id: 6,
         size: "S",
         color: "Black",
         stockQuantity: 8,
         sku: "DRS-SLP-BLK-S",
       },
       {
-        id: "var-2-md-blk",
+        id: 7,
         size: "M",
         color: "Black",
         stockQuantity: 12,
@@ -195,22 +195,21 @@ export const mockProductList = [
       },
     ],
   },
-
   {
-    id: "prod-3",
+    id: 3,
     name: "Ribbed Knit Tank Top",
     price: 24.99,
     description: "Essential basic tank for everyday layering.",
-    categoryId: "102",
+    categoryId: 102,
     images: [
       {
-        id: "img-3-a",
+        id: 4,
         color: "White",
         imageUrl: "/assets/products/knit-tank-white.jpg",
         isPrimary: true,
       },
       {
-        id: "img-3-b",
+        id: 5,
         color: "Olive",
         imageUrl: "/assets/products/knit-tank-olive.jpg",
         isPrimary: false,
@@ -218,28 +217,28 @@ export const mockProductList = [
     ],
     variants: [
       {
-        id: "var-3-sm-wht",
+        id: 8,
         size: "S",
         color: "White",
         stockQuantity: 20,
         sku: "TNK-RIB-WHT-S",
       },
       {
-        id: "var-3-md-wht",
+        id: 9,
         size: "M",
         color: "White",
         stockQuantity: 25,
         sku: "TNK-RIB-WHT-M",
       },
       {
-        id: "var-3-lg-wht",
+        id: 10,
         size: "L",
         color: "White",
         stockQuantity: 18,
         sku: "TNK-RIB-WHT-L",
       },
       {
-        id: "var-3-md-olv",
+        id: 11,
         size: "M",
         color: "Olive",
         stockQuantity: 10,
@@ -247,17 +246,16 @@ export const mockProductList = [
       },
     ],
   },
-
   {
-    id: "prod-4",
+    id: 4,
     name: "Classic Oxford Shirt",
     price: 49.99,
     description:
       "A timeless, comfortable cotton shirt perfect for everyday wear.",
-    categoryId: "201",
+    categoryId: 201,
     images: [
       {
-        id: "img-4-a",
+        id: 6,
         color: "Light Blue",
         imageUrl: "/assets/products/oxford-shirt-blue.jpg",
         isPrimary: true,
@@ -265,21 +263,21 @@ export const mockProductList = [
     ],
     variants: [
       {
-        id: "var-4-md-blu",
+        id: 12,
         size: "M",
         color: "Light Blue",
         stockQuantity: 30,
         sku: "SHT-OXF-BLU-M",
       },
       {
-        id: "var-4-lg-blu",
+        id: 13,
         size: "L",
         color: "Light Blue",
         stockQuantity: 22,
         sku: "SHT-OXF-BLU-L",
       },
       {
-        id: "var-4-xl-blu",
+        id: 14,
         size: "XL",
         color: "Light Blue",
         stockQuantity: 15,
@@ -298,4 +296,27 @@ export const mockUserData = {
   id: 1,
   username: mockValidUserDataInput.username,
   isAdmin: false,
+};
+
+export const mockCartItems = [
+  {
+    id: 1,
+    cartId: 1,
+    productVariantId: 1,
+    quantity: 1,
+  },
+  {
+    id: 2,
+    cartId: 1,
+    productVariantId: 2,
+    quantity: 3,
+  },
+];
+
+export const mockCart = {
+  id: 1,
+  userId: mockUserData.id,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  items: mockCartItems,
 };
