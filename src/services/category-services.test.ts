@@ -2,7 +2,7 @@ import { describe, vi, expect, it } from "vitest";
 import { findCategoryListService } from "./category-services";
 import { findProductListByCategorySlugService } from "./category-services";
 import { prisma } from "../lib/prisma";
-import { findCategoryIdsBySlug } from "../helpers/category-helpers";
+import { findCategoryIdsBySlug } from "../utils/category-utils";
 
 vi.mock("../lib/prisma", () => ({
   prisma: {
@@ -16,7 +16,7 @@ vi.mock("../lib/prisma", () => ({
   },
 }));
 
-vi.mock("../helpers/category-helpers", () => ({
+vi.mock("../utils/category-utils", () => ({
   findCategoryIdsBySlug: vi.fn(),
 }));
 

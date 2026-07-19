@@ -3,9 +3,12 @@ import type {
   Response,
   NextFunction,
 } from "express-serve-static-core";
-import { BadRequestError } from "../../errors/custom-errors";
+import { BadRequestError, NotFoundError } from "../../errors/custom-errors";
 import { sendSuccess } from "../../utils/response-utils";
-import { findProductService } from "../../services/product-services";
+import {
+  findProductService,
+  findRelatedProductsService,
+} from "../../services/product-services";
 
 export const findProductController = async (
   req: Request,
@@ -14,24 +17,18 @@ export const findProductController = async (
 ) => {
   try {
     const { id } = req.params;
-    const { categoryId } = req.query;
-
-    if (!categoryId) {
-      throw new BadRequestError("Missing category id");
-    }
 
     const numericId = Number(id);
-    const numericCategoryId = Number(categoryId);
 
-    if (isNaN(numericCategoryId) || isNaN(numericId)) {
-      throw new BadRequestError(
-        "Product Id and category id must be valid number",
-      );
+    if (isNaN(numericId)) {
+      throw new BadRequestError("Product id must be valid number");
     }
 
-    const product = await findProductService(numericId, numericCategoryId);
+    const product = await findProductService(numericId);
 
-    sendSuccess(res, 200, product);
+    const relatedProducts = await findRelatedProductsService(product.id);
+
+    sendSuccess(res, 200, { ...product, relatedProducts });
   } catch (error) {
     next(error);
   }

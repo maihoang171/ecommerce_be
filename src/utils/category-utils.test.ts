@@ -1,7 +1,7 @@
 import { beforeEach } from "node:test";
 import { describe, it, expect, vi } from "vitest";
 import { prisma } from "../lib/prisma";
-import { findCategoryIdsBySlug } from "./category-helpers";
+import { findCategoryIdsBySlug } from "../utils/category-utils";
 import { NotFoundError } from "../errors/custom-errors";
 import { mockCategoryList } from "../tests/mockData";
 

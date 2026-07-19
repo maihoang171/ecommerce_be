@@ -1,12 +1,16 @@
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 import { BadRequestError } from "../../errors/custom-errors";
 import { findProductController } from "./product-controllers";
-import { findProductService } from "../../services/product-services";
+import {
+  findProductService,
+  findRelatedProductsService,
+} from "../../services/product-services";
 import { sendSuccess } from "../../utils/response-utils";
 import { mockProductList } from "../../tests/mockData";
 
 vi.mock("../../services/product-services", () => ({
   findProductService: vi.fn(),
+  findRelatedProductsService: vi.fn(),
 }));
 
 vi.mock("../../utils/response-utils", () => ({
@@ -25,36 +29,7 @@ describe("findProductController", () => {
       params: {
         id: 1,
       },
-      query: {
-        categoryId: 1,
-      },
     };
-  });
-
-  it("should throw bad request error if categoryId is missing", async () => {
-    mockReq = {
-      ...mockReq,
-      query: {
-        categoryId: null,
-      },
-    };
-
-    await findProductController(mockReq, mockRes, mockNext);
-
-    expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
-  });
-
-  it("should call next with bad request error if categoryId is not a number", async () => {
-    mockReq = {
-      ...mockReq,
-      query: {
-        categoryId: "string",
-      },
-    };
-
-    await findProductController(mockReq, mockRes, mockNext);
-
-    expect(mockNext).toHaveBeenCalledWith(expect.any(BadRequestError));
   });
 
   it("should call next with bad request error if id is not a number", async () => {
@@ -80,14 +55,18 @@ describe("findProductController", () => {
     expect(mockNext).toHaveBeenCalledWith(mockErr);
   });
 
-  it("should return status code 200 and product on success", async () => {
+  it("should return status code 200 and product with related products on success", async () => {
     const mockProduct = mockProductList[0];
+    const relatedProducts = mockProductList;
 
     vi.mocked(findProductService).mockResolvedValue(mockProduct);
-
+    vi.mocked(findRelatedProductsService).mockResolvedValue(relatedProducts);
     await findProductController(mockReq, mockRes, mockNext);
 
-    expect(sendSuccess).toHaveBeenCalledWith(mockRes, 200, mockProduct);
+    expect(sendSuccess).toHaveBeenCalledWith(mockRes, 200, {
+      ...mockProduct,
+      relatedProducts,
+    });
     expect(mockNext).not.toHaveBeenCalled();
   });
 });

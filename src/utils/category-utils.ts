@@ -1,6 +1,18 @@
-import { CategoryType } from "@prisma/client";
+import { prisma } from "../lib/prisma";
+import { NotFoundError } from "../errors/custom-errors";
 
-export const CategorySizes: Record<CategoryType, string[]> = {
-  TOP: ["S", "M", "L", "XL", "XXL"],
-  BOTTOM: ["28", "29", "30", "31", "32"],
+export const findCategoryIdsBySlug = async (slug: string) => {
+  const category = await prisma.category.findFirst({
+    where: { slug },
+    select: {
+      id: true,
+      children: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!category) throw new NotFoundError("Category not found");
+
+  return [category.id, ...category.children.map((c: { id: number }) => c.id)];
 };
